@@ -1,6 +1,8 @@
+/*
+ * author: dengweiwei
+ * 2020-09-30
+ */
 #include"ElementInMPQVector.h"
-
-
 MPQVector::MPQVector(int len)
 {
     this->length = len;

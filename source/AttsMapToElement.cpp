@@ -1,3 +1,7 @@
+/*
+ * author: dengweiwei
+ * 2020-09-30
+ */
 #include"AttsMapToElement.h"
 
 AttsMapToElement::AttsMapToElement(const std::vector<std::string>& attrs,pairing_t pairing,AlgebraicS c)

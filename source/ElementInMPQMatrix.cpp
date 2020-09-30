@@ -1,3 +1,7 @@
+/*
+ * author: dengweiwei
+ * 2020-09-30
+ */
 #include"ElementInMPQMatrix.h"
 
 //使用LSSSMatrix进行构造

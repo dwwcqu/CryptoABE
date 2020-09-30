@@ -1,3 +1,7 @@
+/*
+ * author: dengweiwei
+ * 2020-09-30
+ */
 #include"LSSSMatrix.h"
 
 LSSSMatrix::LSSSMatrix(int threshold,int childNum)
