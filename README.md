@@ -1,10 +1,4 @@
-<html>
-    <head>
-        <script id="MathJax-script" async src="https://github.com/dwwcqu/CryptoABE/mathjax/tex-chtml.js"></script>
-    </head>
-</html>
-
-# CryptoABE
+# ***CryptoABE***
 
 这个仓库主要是用来实现一些 ***ABE(attribute-based encryption)*** 方案。 因为个人时间和能力问题，整个仓库只是实现一些 ***ABE*** 方案的小 demo,但是，也有一些特别的地方，如我们的访问策略树和 ***LSSS*** 秘密分享方案与 ***ABE*** 方案的结合。
 
@@ -12,10 +6,10 @@
 
 在我实现的 ***ABE*** 方案中，我使用了特殊形式的字符串来表示加密阶段使用的策略， 例如 *((A,B,C,2),(D,E,F,2),2)*。我们可以把这个访问策略看成是一颗树，整个字符串代表是我们的根节点，子串就代表了根节点的孩子节点，孩子节点就可以作为一个子树并作为这个新子树的根节点，一直递归到叶子节点，即到一个没有孩子节点的位置上。其中，我们用圆括号代表一个非叶子节点，在这一对括号中，里面包含的圆括号的个数代表这个节点的孩子节点的个数，而最后的数字代表了这个节点的阈值，没有用圆括号括起来的就是我们的属性值，也就是树的叶子节点。例如前面举的例子，用这个思路还原出整个访问策略树结构的步骤如下：
 
-| ***((A,B,C,2),(D,E,F,2),2)*** | ![access tree 01](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree01.png) |    步骤  1    |
-| :---------------------------: | :----------------------------------------------------------: | :-----------: |
-|  ***(A,B,C,2), (D,E,F,2)***   | **![access tree 02](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree02.png)** |  **步骤  2**  |
-|       ***A,B,C,D,E,F***       | **![access tree 03](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree03.png)** | ***步骤  3*** |
+| ***((A,B,C,2),(D,E,F,2),2)*** | ![access tree 01](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree01.png) |    步骤    1    |
+| :---------------------------: | :----------------------------------------------------------: | :-------------: |
+|  ***(A,B,C,2), (D,E,F,2)***   | **![access tree 02](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree02.png)** |  **步骤    2**  |
+|       ***A,B,C,D,E,F***       | **![access tree 03](https://github.com/dwwcqu/CryptoABE/blob/master/images/accesstree03.png)** | ***步骤    3*** |
 
 在这个访问策略中，如果只有在根节点的两个子结点都满足的情况下，整个访问策略才是满足的。同时，要使根节点的两个子结点满足的话，那么左边一个节点至少要满足三个属性中的两个属性时才能保证这个节点满足策略，同样的道理对右边这个节点。因此，***“A,B,D,E”*** 就是一个满足访问策略的属性集合，而 ***“A,D,E,F“*** 就不满足访问策略。
 
@@ -76,31 +70,91 @@ $$
 
 ## **Brent Waters CPABE Scheme**
 
-### 预备知识 Preliminary
+### **预备知识 *Preliminary***
 
-#### 库/包依赖
+#### **库/包依赖**
 
 在实现 ***ABE*** 加密算法过程时，您所需要的依赖库有 [*gmp*](https://gmplib.org) 和由斯坦福大学的 *Ben Lynn* 等人实现的 [*PBC Library*](https://crypto.stanford.edu/pbc/)。具体如何安装请参考这两个依赖包的安装说明文档，需要注意的是，在我实现的方案中，我是用 *C++* 语言取实现的 ***ABE*** 方案。因此，我安装的是 *PBC* 的 *C* 语言安装，如果你使用 *Java* 语言进行实现的话，我建议你使用 [*JPBC*](http://gas.dia.unisa.it/projects/jpbc/) 这个 *Java* 库。
 
-#### 双线性映射 （Bilinear Maps)
+#### **双线性映射 （*Bilinear Maps*)**
 
 假设 $\mathbb{G}$ 和 $\mathbb{G_T}$ 为两个阶为 $p$ 的乘法循环群，设 $g$ 为群 $\mathbb{G}$ 的生成元，而 $e$ 为一个双线性映射满足，$e : \mathbb{G} \times \mathbb{G} \rightarrow \mathbb{G_T}$。而且这个双线性映射满足以下性质：
 
-1. 双线性： 对任意的元素 $u,v \in \mathbb{G}$ 和任意的元素 $a,b \in \mathbb{Z_p}$, 我们有 $e(u^a, v^b) = e(u,v)^ {ab}$ 成立。
-2. 非简化性： $e(g,g) \not= 1$
+1. **双线性**： 对任意的元素 $u,v \in \mathbb{G}$ 和任意的元素 $a,b \in \mathbb{Z_p}$, 我们有 $e(u^a, v^b) = e(u,v)^ {ab}$ 成立。
+2. **非简化性**： $e(g,g) \not= 1$
 3. 这个双线性映射要是很容易计算，并且这个双线性映射满足对称性。
 
-#### **具体方案 (Scheme)**
+#### 具体方案 (*Scheme*)
 
-##### 系统初始化阶段 (Setup)
+##### 系统初始化阶段 (***Setup***)
 
+1. 首先，需要生成整个系统所需要的使用的属性，包括属性的数量 $U$ 以及属性值；
+2. 根据选定的安全参数，生成整个系统需要使用的配对代数结构及其参数；生成阶为 $p$ 的群 $\mathbb{G}$，确定一个群 $\mathbb{G}$ 上的一个生成元 $g$。同时，为系统的 $U$ 个属性分别分配一个 $\mathbb{G}$ 上的元素：$ h_1, h_2, ..., h_U \in \mathbb{G}$。
+3. 选取两个随机元素：$\alpha, a \in \mathbb{Z_p}$。
 
+根据上面的过程，*Waters* 的 *CPABE* 方案中的公钥为 $PK = g, e(g,g)^\alpha, g^a, h_1, ..., h_U$；而系统的主密钥为 $MSK = g^\alpha$。
 
-##### 加密阶段 (Encryption)
+##### **加密阶段 (*Encryption*)**
 
-##### 用户密钥生成阶段 (KeyGen)
+1. 在加密阶段，需要使用到系统初始化阶段生成的公共参数 $PK$，同时，需要一个用被加密的消息 $M \in \mathbb{G_T}$；
 
-##### 解密阶段 (Dcryption)
+2. ***CPABE*** 加密方案的访问策略保存在密文中，因此，需要让加密方根据自己的需求去设定一个访问策略（在我的方案中，访问策略的形式在前面的内容已经给出）；因为 *Waters* 的这个 ***CPABE*** 方案是用 *LSSS 矩阵* 来实现的，因此，如何把一个访问策略变成一个 *LSSS 矩阵* 的方案也在前面给出，这里我们就直接使用这个为 $m*n$ 的矩阵。其中 $m$ 为访问策略中的属性数量（注意：在这个方案中，我们要求访问策略中的属性不能重复）；$n$ 与发送方设定的访问策略有关系。同时，我们还需要一个映射函数 $\rho$ ，它的功能就是把 *LSSS 矩阵* 的每一行与访问策略属性集中的某个属性进行关联。
+
+3. 为了让访问策略中的每个属性获得一个秘密分享值，根据我前面提到的 *LSSS* 的思想，我们需要个随机矩阵 $ v = (s, y_2, ..., y_n) \in \mathbb{Z_p^n}$；其中，$s$ 就是我们需要被进行分享的秘密值，其他 $n-1$ 个为随机值；因此，我们可以给这个 $m$ 个属性分别获得对应的秘密值：$ i = 1 ... m$, 我们有 $\lambda_i = v * M_i$，其中 $M_i$ 为访问矩阵 $M$ 的第 $i$ 行。同时，加密方需要生成 $m$ 个随机元素：$r_1, ... , r_m \in \mathbb{Z_p}$。
+
+4. 经过上面三个阶段以后，我们就可以计算密文：
+   $$
+   C = \mathcal{M}*e(g,g)^{\alpha s}
+   $$
+
+   $$
+   C^{\prime} = g^s
+   $$
+
+   $$
+   (C_1 = g^{a\lambda_1}h_{\rho(1)}^{-r_1}, D_1 = g^{r_1}),..., (C_m = g^{a\lambda_m}h_{\rho(m)}^{-r_m}, D_m = g^{r_m})
+   $$
+
+经过上面四个阶段，我们就可以得到加密阶段的密文：$C, C^\prime, (C_1,D_1),...,(C_m,D_m)$，同时，还有加密阶段使用的线性秘密分享矩阵 $M$ 和映射函数 $\rho$。
+
+##### **用户密钥生成阶段 (*KeyGen*)**
+
+这个阶段主要完成，根据用户具有的属性集合（这个集合为系统所有属性集的子集），生成其对应的用户私钥，解密使用。
+
+1. 首先，需要系统的主密钥 $MSK$ 和用户的属性集合 $S$ ；
+
+2. 生成每个用户的密钥时，随机生成一个值 $t \in \mathbb{Z_p}$，同时，计算其对应的密钥：
+   $$
+   K = g^\alpha g^{at}
+   $$
+
+   $$
+   L = g^t
+   $$
+
+   $$
+   \forall x\in S, K_x= h_x^t
+   $$
+
+因此，每个用户对应的私钥为：$K,L, \forall x \in S: K_x$。
+
+##### 解密阶段 (***Dcryption***)
+
+当有用户想要去访问发送方加密的明文时，接收方就需要对加密的密文进行解密，密文中含有的内容有：$C, C^\prime, (C_1,D_1),...,(C_m,D_m)$和秘密分享矩阵矩阵$M$ 和映射函数 $\rho$，具体解密过程如下：
+
+1. 为了还原出明文 $\mathcal{M}$，我们需要用密文中的访问策略和接收方用户的属性集合得到秘密值 $s$；
+
+2. 因为，在 *Waters* 的 ***CPABE*** 方案中，他仅仅是给出了可以在多项式时间内找到一个这个解向量 $\{\omega_i \in \mathbb{Z_p}\}_{i \in I}$，使得 $\sum_{i\in I}{\omega_i}*{\lambda_i} = s$成立，其中 $I=\{i:\rho(i) \in S\}$，$S$ 为用户的属性集合；但是 *Waters* 而没有给出具体的求解方案，因此在前面的内容中，我给出了具体的求解思路，在这里我们就直接使用这些根据用户的属性集合求解出来的解用于解密；
+   $$
+   e(C^\prime,K)/(\prod_{i\in I}(e(C_i,L)*e(D_i,K_{\rho(i)}))^{\omega_i})=
+   e(g,g)^{\alpha s}*e(g,g)^{ast}/(\prod_{i \in I}e(g,g)^{at\lambda_i\omega_i})=e(g,g)^{\alpha s}
+   $$
+
+   $$
+   C/e(g,g)^{\alpha s} = \mathcal{M}
+   $$
+
+只要用户的属性集合满足密文中的访问策略，那么使用我们求解方法，一定就可以得到对应属性集合上的解，进而完成对密文的解密。如果，接收方的属性集合不满足访问策略的话，那么其接受到密文 $C, C^\prime, (C_1,D_1),...,(C_m,D_m)$ 以及秘密分享矩阵矩阵 $M$ 和映射函数 $\rho$，再加上自己的私钥 $K,L, \forall x \in S: K_x$ 这些信息，也不能求解出秘密值（或者说这个可能性很低，这由一定的假设保证，在 *Waters* 方案中使用的就是一个叫做 ***Decisional Parallel Bilinear Diffie-Hellman Exponent Assumption***，简单理解就是：你能破解这个系统的话，等价于解决一个数学上的难题）。
 
 # CryptoABE
 
