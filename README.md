@@ -1,4 +1,4 @@
-<script id="MathJax-script" async src="<https://github.com/dwwcqu/CryptoABE/mathjax/es5/tex-chtml.js"></script>
+<script id="MathJax-script" async src="<https://github.com/dwwcqu/CryptoABE/mathjax/tex-chtml.js"></script>
 
 # CryptoABE
 
