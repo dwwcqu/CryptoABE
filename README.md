@@ -23,7 +23,7 @@
 
 具体关于访问策略树的代码实现，可以参考仓库中的 [*include/LSSSMatrix.h*](https://github.com/dwwcqu/CryptoABE/blob/master/include/LSSSMatrix.h) 和 [*source/LSSSMatrix.cpp*](https://github.com/dwwcqu/CryptoABE/blob/master/source/LSSSMatrix.cpp) 这两个文件。
 
-## 线性秘密分享方案 *(LSSS)*
+## **线性秘密分享方案** *(LSSS)*
 
 在 *Waters* 2011年的论文 *[Ciphertext-Policy Attribute-Based Encryption:An Expressive, Efficient, and Provably Secure Realization](https://dl.acm.org/doi/10.5555/1964658.1964664)* 中使用了 ***LSSS*** 秘密分享方案设计了一个可证明安全 ***CPABE*** 方案。截至到现在 *2020年9月30日*，因为没有查以前是否有工作完成了用 ***LSSS*** 去实现 ***CPABE*** 方案，如果，已经存在这样的工作，那么大家就当作是一种复习。
 
@@ -74,11 +74,33 @@ $$
 
 具体的方案实现部分，读者可以参考 [*include/ElementInZrMatrix.h*](https://github.com/dwwcqu/CryptoABE/tree/master/include/ElementInZrMatrix.h), *[include/ElementInZrVector.h](https://github.com/dwwcqu/CryptoABE/tree/master/include/ElementInZrVector.h)*, *[source/ElementInZrMatrix.cpp](https://github.com/dwwcqu/CryptoABE/tree/master/source/ElementInZrMatrix.cpp)* 和 [*source/ElementInZrVector.cpp*](https://github.com/dwwcqu/CryptoABE/tree/master/source/ElementInZrVector.cpp)这几个源码进行上面思路的具体实现。
 
-## Brent Waters CPABE Scheme
+## **Brent Waters CPABE Scheme**
 
 ### 预备知识 Preliminary
 
+#### 库/包依赖
 
+在实现 ***ABE*** 加密算法过程时，您所需要的依赖库有 [*gmp*](https://gmplib.org) 和由斯坦福大学的 *Ben Lynn* 等人实现的 [*PBC Library*](https://crypto.stanford.edu/pbc/)。具体如何安装请参考这两个依赖包的安装说明文档，需要注意的是，在我实现的方案中，我是用 *C++* 语言取实现的 ***ABE*** 方案。因此，我安装的是 *PBC* 的 *C* 语言安装，如果你使用 *Java* 语言进行实现的话，我建议你使用 [*JPBC*](http://gas.dia.unisa.it/projects/jpbc/) 这个 *Java* 库。
+
+#### 双线性映射 （Bilinear Maps)
+
+假设 $\mathbb{G}$ 和 $\mathbb{G_T}$ 为两个阶为 $p$ 的乘法循环群，设 $g$ 为群 $\mathbb{G}$ 的生成元，而 $e$ 为一个双线性映射满足，$e : \mathbb{G} \times \mathbb{G} \rightarrow \mathbb{G_T}$。而且这个双线性映射满足以下性质：
+
+1. 双线性： 对任意的元素 $u,v \in \mathbb{G}$ 和任意的元素 $a,b \in \mathbb{Z_p}$, 我们有 $e(u^a, v^b) = e(u,v)^ {ab}$ 成立。
+2. 非简化性： $e(g,g) \not= 1$
+3. 这个双线性映射要是很容易计算，并且这个双线性映射满足对称性。
+
+#### **具体方案 (Scheme)**
+
+##### 系统初始化阶段 (Setup)
+
+
+
+##### 加密阶段 (Encryption)
+
+##### 用户密钥生成阶段 (KeyGen)
+
+##### 解密阶段 (Dcryption)
 
 # CryptoABE
 
