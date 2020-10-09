@@ -1,7 +1,9 @@
 Include_Dir = /home/dww01/ABECrypto/include/
 Obj_Dir = /home/dww01/ABECrypto/obj/
+inc = include/
+par = param/
 Source_Dir = /home/dww01/ABECrypto/source/
-Lib_Dir = /home/dww01/ABECrypto/lib/
+Param_Dir = /home/dww01/ABECrypto/param/
 Link = -L. -lgmp -lpbc
 
 All: Waters11Scheme
