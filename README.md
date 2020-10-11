@@ -156,6 +156,65 @@ $$
 
 只要用户的属性集合满足密文中的访问策略，那么使用我们求解方法，一定就可以得到对应属性集合上的解，进而完成对密文的解密。如果，接收方的属性集合不满足访问策略的话，那么其接受到密文 $C, C^\prime, (C_1,D_1),...,(C_m,D_m)$ 以及秘密分享矩阵矩阵 $M$ 和映射函数 $\rho$，再加上自己的私钥 $K,L, \forall x \in S: K_x$ 这些信息，也不能求解出秘密值（或者说这个可能性很低，这由一定的假设保证，在 *Waters* 方案中使用的就是一个叫做 ***Decisional Parallel Bilinear Diffie-Hellman Exponent Assumption***，简单理解就是：你能破解这个系统的话，等价于解决一个数学上的难题）。
 
+## **思考**
+
+### 使用加密做访问控制
+
+目前，我所熟知的 ***IBE (Identity-based Encryption)*** 和 ***ABE (Attributes-based Encryption)***  加密方案都可以算作是加密访问控制的方案。但是， ***IBE*** 与 ***ABE*** 又存在不同的地方。***IBE*** 可以有传统公钥加密方案的特性，即它有公钥（即用户的身份为其公钥），而私钥是与公钥满足某种运算关系，如下图就是一个 ***IBE*** 加密方案的大致过程：
+
+![IBE 方案](/home/dww01/ABECrypto/images/ibe.jpg)
+
+1. 如果 *Alice* 想要给 *Bob*发送消息，那么 *Alice* 可以使用 *Bob* 的公钥（$i$，身份即是用户的公钥）（例如：*Bob* 的邮箱 *IP*地址 *MAC*地址 身份证号等）对消息进行加密；
+2. 消息通过一个不可信的通道发送给了 *Bob*；
+3. *Bob* 用户可以根据自己的身份（$i$），通过一个 *Key Generation* 算法获得其对应的私钥钥（$kd$)；
+4. 在 *Bob* 获得其私钥和密文以后，就可以根据自己的私钥对消息进行解密；
+5. 同样，*Bob* 也可以给 *Alice* 发送消息，只是在加密时，用的是 *Alice* 的身份作为其公钥，*Alice* 的解密过程与上面一致，也需要获得自己身份对应的私钥。
+
+#### ***Dan and Franklin's IBE scheme in 2001***
+
+在这里为了更加具体，我给出一个关于 ***IBE*** 加密方案的具体实例，这是 *Dan Boneh* 等人在2001年首次提出的全安全的 ***IBE*** 方案，论文的名称为 [*Identity-based encryption from the weil pairing*](https://dl.acm.org/doi/10.5555/646766.704155)。
+
+首先，*Dan* 的等人的这个方案是建立在 ***BDH (Bilinear Diffie-Hellman)*** 假设上的一个方案，在这篇文章中，作者们提出了两个方案，一个是简单版的，但是效率更高；另一个是完全版，更加安全，但是效率会底一些。这里我就只介绍一下这个简单版的方案，方案的具体过程如下：
+
+***系统初始化算法*** (Setup) 。给定一个系统的安全参数 $k\in\mathbb{Z^+}$，生成整个系统需要使用的配对代数结果的各项参数，包括：
+
+1. 阶为 $q$ 的循环群 $\mathbb{G_1}$ 和 $\mathbb{G_2}$，以及一个双线性映射关系：$e : \mathbb{G_1} \times \mathbb{G_1} \rightarrow \mathbb{G_2}$；
+2. 并且，选择一个 $\mathbb{G_1}$ 这个代数结构上的一个生成元 $P$；
+3. 选择一个随机元素 $s \in \mathbb{Z_q^*}$，并且计算系统中的公钥 $P_{pub} = s*P$；
+4. 选择两个加密哈希函数 $H_1$ 和 $H_2$，其中，$H_1 : \{0,1\}^* \rightarrow \mathbb\{G_1^*\}$，而 $H_2 : \mathbb{G_2} \rightarrow \{0,1\}^n$；
+
+因此，这个阶段就生成了整个系统的参数：$param = <q, \mathbb{G_1}, \mathbb{ G_2}, e, n, P, P_{pub}, H_1, H_2>$，以及系统主私钥：$MSK = s$。
+
+***用户密钥生成算法 (Key Generation)***。给定一个用户的身份 $ID \in \{0,1\}^*$:
+
+1. 根据哈希函数 $H_1$ 将用户的身份映射到群 $\mathbb{G_1}$ 上一元素：$Q_{ID} = H_1(ID)$；
+2. 使用系统的主密钥 *MSK* 生成用户身份对应的私钥：$d_{ID} = s * Q_{ID}$。
+
+***加密算法 (Encryption)***。给定一个消息 $M \in \mathcal{M}$ 和想要接受消息的用户的公钥：
+
+1. 根据接收方的身份 *ID*，使用  $H_1$ 密码哈希函数，计算其对应到群 $\mathbb{G_1}$ 上对应的元素：$Q_{ID} = H_1(ID) \in \mathbb{G_1^*}$；
+2. 选择一个随机元素：$r \in \mathbb{Z_q^*}$；
+3. 计算对应的密文：$C = <r*P, M \bigoplus H_2(g_{ID}^r)>$ where $g_{ID} = e(Q_{ID}, P_{pub}) \in \mathbb{G_2^*}$
+
+***解密算法 (Decryption)***。根据接受到的密文 $C = <U, V> \in \mathcal{C}$ 和用户的私钥 $d_{ID}$：
+$$
+V \bigoplus H_2(e(d_{ID},U)) = M
+$$
+验证解密过程的正确性：
+$$
+e(d_{ID},U) = e(s*Q_{ID},r*P) = e(Q_{ID},P)^{sr} = e(Q_{ID},s*P)^r=e(Q_{ID},P_{pub})^r=g_{ID}^r
+$$
+整个 *Dan* 的 ***IBE*** 方案和经典的公钥加密方案（如：*RSA*, *ElGamal*,*ECC*等）一样，存在公/私钥对，也就可以用来作为签名方案。以下，我列举一个用 *IBE* 作为签名的方案，详细可以参考这篇论文 [*Short Signatures from the Weil Pairing* ](https://link.springer.com/article/10.1007/s00145-004-0314-9)。
+
+#### ***BLS 签名***
+
+1. 密钥生成阶段：根据安全参数，生成系统需要使用的配对代数结果的各项参数，包括：阶为 $q$ 的循环群 $\mathbb{G_1}$ 和 $\mathbb{G_2}$，以及一个双线性映射关系：$e : \mathbb{G_1} \times \mathbb{G_1} \rightarrow \mathbb{G_2}$；以及，确定两个哈希函数 $H_1 : \{0,1\}^* \rightarrow \mathbb\{G_1^*\}$；确定群 $\mathbb{G_1}$ 上的生成元 $P$；
+2. 用户公/私钥对生成：和私钥 $ x \in \mathbb{Z_p^*}$ 和对应的公钥$Q_{ID} = x*P$；
+3. 签名阶段：对于消息 $m$，计算对消息 $m$ 的签名，$W = x*H_1(m)$；
+4. 验证阶段：当受到签名消息后，使用用户的公钥验证等式是否成立：$e(P,W) = e(Q_{ID},H_1(m))$；
+
+
+
 # CryptoABE
 
 This repository is some implementation of ***ABE (attribute-based encryption)*** scheme. Thanks to personal abilities, this repository is just a few ABE demos. However, these demos will give some ideas about cryptography to you. For example, in our implementations, I use a special *string* to express the access policy, such as *((A,B,C,2),(D,E,F,2),2)*. In each access policy, we could regard the string as a tree and substrings are child tree. The whole string is located in the root node.
