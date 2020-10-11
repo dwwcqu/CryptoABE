@@ -213,6 +213,54 @@ $$
 3. 签名阶段：对于消息 $m$，计算对消息 $m$ 的签名，$W = x*H_1(m)$；
 4. 验证阶段：当受到签名消息后，使用用户的公钥验证等式是否成立：$e(P,W) = e(Q_{ID},H_1(m))$；
 
+可以从上面的两个例子来看，***IBE*** 的加密和签名方案可以满足传统公钥加密中存在公/私钥对，但是对于 ***ABE*** 这中加密方案来讲。2005年 *Sahai* 和 *Waters* 在论文 [*Fuzzy Identity-Based Encryption*](https://link.springer.com/chapter/10.1007%2F11426639_27) 中提出 ***ABE*** 以来，它本身并没有传统公钥加密系统中的公/私钥对的概念，而是作为一种用特殊的加密技术用于访问控制场景中。例如，从 ***ABE*** 演变出的 ***KP-ABE*** 和 ***CP-ABE*** ，分别为密钥策略以及密文策略的属性基加密方案。自此，大家的研究就是对这两种方案进行改进研究，包括：实现对方案过程中使用的访问策略进行隐藏以保证用户的隐私；系统中使用的属性事关用户的隐私，如何保护这些属性信息；如何将这种加密访问策略方案用于数据的安全共享的应用场景；以及由 ***KP-ABE*** 演变的可搜索加密技术和多个属性授权方管理下的属性基加密方案等等（以上是我目前所看到过的）。
+
+#### ***ABE 加密***
+
+为了和其他公钥加密系统的方案做一个对比，我在这里简单的介绍一下 *Sahai* 和 *Waters* 关于 ***ABE*** 的整个过程。在这篇文章中， *Sahai* 等人的想法是我们用了一个集合的元素 $\omega$（在这里我们就可以理解为属性）对明文进行加密，只有当解密方用户拥有的元素集合 $\omega^\prime$ 满足 $\omega \bigcap \omega^\prime \geq d$ 时，才能正确解密。在我们看来，这里的$\omega \bigcap \omega^\prime \geq d$ 就是所谓的访问策略，里面的所有元素都可以用属性来反映。
+
+***系统初始化阶段***
+
+根据安全参数，生成阶为 $p$ 的群  $\mathbb{G_1}$ 和 $\mathbb{G_2}$；
+
+同时，确定一个在 $\mathbb{G_1}$ 上的生成元 $g$ 和 双线性映射运算：$e : \mathbb{G_1} \times \mathbb{G_1} \rightarrow \mathbb{G_2}$；
+
+并且，定义了一个朗格朗日系数，$S$ 为元素的集合：
+$$
+\Delta_{i,S}(x)=\prod_{j\in S,j\not= i}\frac{x-j}{i-j}
+$$
+确定整个系统用于加密使用的元素及其个数，$\mathcal{U}$ 和 $|\mathcal{U}|$；对这 $|\mathcal{U}|$ 个元素进行编号，为 $1, \dots,|\mathcal{U}|$，同时选择 $|\mathcal{U}|$ 个随机元素：$t_1, \dots, t_{|\mathcal{U}|} \in \mathbb{Z_p^*}$；并且，也选择一个随机元素 $y \in \mathbb{Z_p^*}$；
+
+接着，生成整个系统的公钥参数：
+$$
+T_1 = g^{t_1}, \dots, T_{|\mathcal{U}|}=g^{t_{|\mathcal{U}|}},Y=e(g,g)^y
+$$
+和系统主密钥为：$t_1, \dots, t_{|\mathcal{U}|} \in \mathbb{Z_p^*}, y$ 。
+
+***密钥生成阶段***
+
+给定一个用户的元素结合 $\omega \subseteq \mathcal{U}$ ，生成一个度为 $d$ 的多项式 $q$，其中这个多项式满足 $q(0) = y$ ;
+
+紧接着生成这个集合下的私钥：$(D_i = g^{\frac{q(i)}{t_i}})_{i \in \omega}$ 
+
+***加密阶段***
+
+确定加密阶段的元素集合 $\omega^{\prime}\subseteq \mathcal{U}$ 和消息 $M\in\mathbb{G_2}$；
+
+随机选择一个元素 $s\in\mathbb{Z_p}$， 根据上面的参数，生成密文：
+$$
+E = (\omega^\prime, E^\prime = MY^s, \{E_i=T_i^s\}_{i\in\omega^\prime})
+$$
+***解密阶段***
+
+根据用户的元素集合 $\omega$ 满足 $\omega \bigcap \omega^\prime \geq d$，因此，可以取 $\omega$ 的一个包含由 $d$ 个元素的集合 $S = \omega \bigcap \omega^\prime$；
+$$
+E^\prime /\prod_{i\in S}(e(D_i,E_i))^{\Delta_{i,S}(0)}\\
+=Me(g,g)^{sy}/\prod_{i\in S}(e(g^\frac{q(i)}{t_i},g^{st_i}))^{\Delta_{i,S}(x)}\\
+=Me(g,g)^{sy}/\prod_{i\in S}(e(g,g)^{sq(i)})^{\Delta_{i,S}(x)}=M
+$$
+加密阶段通过一个度为 $d$ 多项式对秘密值 $y$ 进行秘密的分享到每个元素上，而在解密阶段，则是通过朗格朗日系数还原出这个秘密值，进而完成解密。
+
 
 
 # CryptoABE
