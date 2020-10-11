@@ -38,6 +38,3 @@ ElementInZrVector.o:$(Source_Dir)ElementInZrVector.cpp
 AttsMapToElement.o:$(Source_Dir)AttsMapToElement.cpp
 	g++ $(Source_Dir)AttsMapToElement.cpp -c -o $(Obj_Dir)AttsMapToElement.o -I$(Include_Dir) -L. -lgmp -lpbc
 
-clear:
-	rm -r Waters11Scheme
-	rm -r $(Obj_Dir)*.o
