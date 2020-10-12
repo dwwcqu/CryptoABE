@@ -160,7 +160,7 @@ $$
 
 目前，我所熟知的 ***IBE (Identity-based Encryption)*** 和 ***ABE (Attributes-based Encryption)***  加密方案都可以算作是加密访问控制的方案。但是， ***IBE*** 与 ***ABE*** 又存在不同的地方。***IBE*** 可以有传统公钥加密方案的特性，即它有公钥（即用户的身份为其公钥），而私钥是与公钥满足某种运算关系，如下图就是一个 ***IBE*** 加密方案的大致过程：
 
-![IBE 方案](https://github.com/dwwcqu/CryptoABE/images/ibe.jpg)
+![IBE 方案](https://github.com/dwwcqu/CryptoABE/images/ibe.png)
 
 1. 如果 *Alice* 想要给 *Bob*发送消息，那么 *Alice* 可以使用 *Bob* 的公钥（$i$，身份即是用户的公钥）（例如：*Bob* 的邮箱 *IP*地址 *MAC*地址 身份证号等）对消息进行加密；
 2. 消息通过一个不可信的通道发送给了 *Bob*；
