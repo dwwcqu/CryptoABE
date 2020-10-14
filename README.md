@@ -342,7 +342,7 @@ $$
 
 就我自己现在看的内容来讲，更多的还是关于 ***ABE*** 方案中的 ***CP-ABE***，且目前接触的方向为对访问策略和属性的隐藏以保护用户的隐私，策略隐藏有全策略隐藏和部分策略隐藏这两个方面。而访问策略的隐藏相关的技术，就我目前所接触到的，我觉得很有意思的一个方向，就是用布隆过滤器来实现对访问策略的隐藏。在这里，就介绍一篇 2017 年发表在 *IEEE Internet of Things Journal* 杂志上的一篇文章 [“*An Efficient and Fine-Grained Big Data Access Control Scheme with Privacy-Preserving Policy*”](https://ieeexplore.ieee.org/document/7476833) ，在这里面作者使用了布隆过滤器来实现用 *LSSS* 矩阵表示访问策略的 *CP-ABE* 加密方案的策略隐藏。
 
-#### ***Bloom Filter in CP-ABE with LSSS Matrix Access Policy***
+### ***Bloom Filter in CP-ABE with LSSS Matrix Access Policy***
 
 关于布隆过滤器的知识，在这里就不多做介绍，有兴趣的可以去参考 [*Bloom Fileter*](https://www.jasondavies.com/bloomfilter/) 的介绍。
 
@@ -424,7 +424,96 @@ $Dec(SK,CT,(\mathbb{M},\rho^\prime))\rightarrow m\ or\ \bot$
 
 通过上面介绍的关于用属性布隆过滤器实现对访问策略的隐藏，我心中就产生了一个疑问，那就是在布隆过滤器中使用的哈希函数是如何工作的；通过文章实验部分的介绍，作者使用的是一种被称为 *Murmurhash* 的哈希算法。关于 *Murmurha* 的具体实现方法，大家可以去参看 [*Austin Appleby*](https://github.com/aappleby/smhasher) 关于 *Murmurhash* 的源码实现与测试。
 
-继续回到这篇文章的属性策略隐藏来看，虽然通过属性布隆过滤器 (*garbled BF*) 实现了对映射函数替代，在一定程度上实现了对访问策略的隐藏。但是，从整个方案过程来看，*LSSS* 矩阵是直接以明文的形式保存，而我们也知道 *LSSS* 矩阵是一种特殊的矩阵，加上用户自己的属性集合，在很大程度上可以还原出大致的访问策略，对用户隐私依旧形成影响。因此，有没有办法实现对 *LSSS* 矩阵的保护，以求得 100% 的策略隐藏，这是一个可以值得研究的思路。
+继续回到这篇文章的属性策略隐藏来看，虽然通过属性布隆过滤器 (*garbled BF*) 实现了对映射函数替代，在一定程度上实现了对访问策略的隐藏。但是，从整个方案过程来看，*LSSS* 矩阵是直接以明文的形式保存，而我们也知道 *LSSS* 矩阵是一种特殊的矩阵，加上用户自己的属性集合，在很大程度上可以还原出大致的访问策略，对用户隐私依旧形成影响。因此，有没有办法实现对 *LSSS* 矩阵的保护，以求得 100% 的策略隐藏，这是一个可以值得研究的思路。我想在自己的论文里面可以有对 *LSSS* 矩阵的隐藏能力，但是这将导致一个问题就是计算效率可能会降低，如何在隐私保护和计算效率之间形成一种折中，也是一个不错解决办法。
+
+最近，也是在师兄的推荐下，看了一篇用到 *区块链* 技术加 *CP-ABE* 加密技术来实现可信访问控制的方案，这是一篇发表在 *IEEE Transactions on Vehicular Technology* 上，名为 *[TrustAccess: A Trustworthy Secure Ciphertext-Policy and Attribute Hiding Access Control Scheme Based on Blockchain](https://ieeexplore.ieee.org/document/8961176)*。而这篇文章中关于 *CP-ABE* 方面的策略隐藏及其安全性证明部分都是来自于 2011 年 *Lai* 等人在 [*Fully secure cipertext-policy hiding CP-ABE*](https://link.springer.com/chapter/10.1007%2F978-3-642-21031-0_3) 这篇文章中的工作，在这里我们先回顾一下 *Lai* 等人在 2011 年关于 *CP-ABE* 的工作内容。
+
+### ***Fully secure cipertext-policy hiding CP-ABE in 2011***
+
+#### ***背景 Background***
+
+这篇文章与我以前看到关于 *CP-ABE* 不同的第一个地方在于，使用的是合数阶上面的双向性映射群。具体关于合数阶双线性映射群的介绍请参考论文 [*Evaluating 2-dnf formulas on ciphertexts*](https://link.springer.com/chapter/10.1007/978-3-540-30576-7_18)，在这里我做一个简单的关于合数阶双线性群映射的介绍：
+
+根据安全参数 $\lambda$ 生成合数阶双线性映射群的各项参数列表 $<p,q,r，\mathbb{G},\mathbb{G}_T,e>$；其中，$p,q,r$  为三个素数，而 $\mathbb{G},\mathbb{G}_T$ 为阶为 $N=pqr$ 的循环群；而 $e: \mathbb{G} \times \mathbb{G} \rightarrow \mathbb{G}_T$ 为一个双线性映射，且满足一下性质：
+
+1. 双线性。 $\forall g,h \in \mathbb{G},a,b\in \mathbb{Z}_N,e(g^a, h^b)=e(g,h)^{ab}$；
+2. 非简化性。$\exists g\in \mathbb{G}$ 满足 $e(g,g)$ 的阶为 $N$。
+
+同时，要求这个双线性映射计算可以在有限时间完成。以上特性和一般的双线性映射一致，这里是合数阶。另外，不同的一个特点就是正交性。我们假设 $\mathbb{G}_p,\mathbb{G}_q,\mathbb{G}_r$ 分别为 $ \mathbb{G}$ 的三个子群，三个群的阶分别为 $p,q,r$，那么我们可以取 $h_p\in \mathbb{G}_p$ 和 $h_q \in \mathbb{G}_q$ ，则根据双线性配对有 $e(h_p,h_q)=1$。即，$\mathbb{G}$ 上的不同子群上的元素进行双线性配对以后，映射到 $\mathbb{G}_T$ 上的单位元。
+
+同时，为了实现对密文访问策略的隐藏，这篇文章中使用了一个叫做 *[内积谓词加密](https://iacr.org/archive/eurocrypt2008/49650145/49650145.pdf)* 技术，而这个概念其实就是前面介绍的函数加密里面的一种特殊函数，即我们熟悉的内积操作。其实这篇文章中的内积谓词加密和函数加密的标准定义有些不同的地方，但是只要清楚：用户的属性集合作为一个向量，访问策略中属性集合作为一个向量，只有当解密方的属性集合向量与密文策略中的向量的内积为 0 时，才能完成对密文的解析，否则不能解密。
+
+其中，任何一个合取/析取范式和属性集合都可以使用一个  $(d+1)^t$ 大小的元素向量表示，$d$ 代表属性类的取值数量，$t$ 代表属性类别数量。作者们在文章中举了一个表示访问策略的例子：$\mathbb{A}=\ Department: CIA\ \\ \ \ \ \ \ \ \ \ \ AND (Position:\ Manager\ OR\ Seniority:\ Senior)$ 
+
+这个访问策略通过多项式：
+$$
+p(x_1,x_2,x_3)\\
+=r(x_1-I_1)+(x_2-I_2)\cdot(x_3-I_3)\\
+=0\cdot x_1x_2x_3+0\cdot x_1x_2+0\cdot x_1x_3+1\cdot x_2x_3+r\cdot x_1\\
++(-I_3)\cdot x_2+(-I_2)\cdot x_3+(I_2I_3-rI_1)
+$$
+其中，$r\in \mathbb{Z}_N$ 随机选择的，$I_1=H(Department:\ CIA),\ I_2=H(Position:\ Manager),\ I_3=H(Seniority:\ Senior)$，而哈希函数 $H:\{0,1\}^*\rightarrow\mathbb{Z}_N$。于是，对于这样一个访问策略，便可以用一个大小为 $(d+1)^t=2^3=8$ 的向量来表示：
+
+$\vec{x}=(0,\dots,0,1,r,-I_3,-I_2,I_2I_3-rI_1)$
+
+而对于一个用户的属性集合为 $S=(Department:\ CIA,Position:\ Director,Seniority:\ Senior)$ 的用户而言，同样可以表示成一个大小为 8 的向量：
+
+$\vec{v}=(I_1^\prime I_2^\prime I_3^\prime,I_1^\prime I_2^\prime,I_1^\prime I_3^\prime,I_2^\prime I_3^\prime,I_1^\prime,I_2^\prime,I_3^\prime,1)$
+
+其中，$I_1^\prime=H(Department:\ CIA),I_2^\prime=H(Position:\ Director),I_3^\prime=H(Seniority:\ Senior)$。于是，如果用户的属性集合满足访问策略 $\mathbb{A}$，那么我们就有 $\vec{x}\cdot \vec{v} = 0$。但是，这种方法的一个缺点就是，它只能支持 AND 和 OR 这样形式的访问策略，对于阈值表达形式的访问策略，无法实现。尽管，可以通过布尔逻辑运算来实现阈值策略，但是表达起来有些不方便，这里可以存在一个潜在的研究思路。
+
+现在我们具体来看一下，*Lai* 等人关于带有隐藏密文策略的 *CP-ABE* 的具体实现方案。
+
+#### ***Ciphertext-Policy Hiding CP-ABE Scheme***
+
+在这个只能支持有限访问结构的 *CP-ABE* 方案中，对系统中的属性进行划分，即属性=属性值的形式。所有的属性有 $m$ 种，每种属性可以最多取 $n$ 个不同的属性值，少于 $n$ 个的可以使用通配符来表示，因此，用向量表示的访问策略的向量长度就为 $(n+1)^m$ 种，可以看出这个长度还是挺长的了。同时，每个用户都会存在每类属性中的某一个属性值。
+
+用符号表示的话，全局属性可以用 $m\times n$ 的矩阵来表示 $V=(V_1,\dots,V_i,\dots,V_m)$，其中 $V_i=(v_{i,1},\dots,v_{i,j},\dots,v_{i,n})$，且 $v_{i,j} \in \mathbb{Z}_N$。即，$V_i$ 为第 $i$ 类属性可能会取的属性值。而对于用户来讲，其可以拥有每个属性中的一个属性值，例如 $S=(v_{1,j_1},\dots,v_{i,j_i},\dots,v_{m,j_m})$，其中，$j_i\in \{1,\dots,n\}$。而对于访问策略 $\mathbb{A}=(W_1,\dots,W_m)$，就一定有 $W_i\subseteq V_i$，对于用户集合 $S$ 满足访问策略的话，就一定有 $v_{i,j_i}\in W_i$，其中 $1 \leq i \leq n$。以下就是本文方案的四个算法：
+
+$\bf Setup(1^\lambda)$
+
+1. 通过给定安全参数，生成合数阶上的双线性配对映射代数结构：$\mathcal{G}(1^\lambda)\rightarrow(p,q,r,\mathbb{G},\mathbb{G}_T,e)$，其中，$\mathbb{G},\mathbb{G}_T$ 的阶为 $N=pqr$；
+2. 同时，选取 $\mathbb{G}_p,\mathbb{G}_r$ 上的生成元分别为 $g_p,g_r$，$a_{i,j}\in \mathbb{Z}_N,R_{i,j}\in \mathbb{G}_r$，且 $1 \leq i \leq m, 1 \leq j \leq n$，即针对系统中的每个属性对应的每个属性值，都要分配一个随机值；
+3. 最后，再随机的选取 $\omega \in \mathbb{Z}_N$ 和$R_0\in \mathbb{G}_r$；
+
+因此，最后形成公钥：$PK=<A_0 = g_p\cdot R_0,\{A_{i,j}=g_p^{a_{i,j}}\cdot R_{i,j}\}_{1\leq i \leq m,1 \leq j \leq n},g_r,Y=e(g_p,g_p)^\omega>$；主秘钥为：$MSK=<g_p,\{a_{i,j}\}_{1\leq i \leq m,1 \leq j \leq n},\omega>$。
+
+$\bf KeyGen(PK,MSK,S)$
+
+在这里的集合 $S$ 依旧代表用户的属性集合，$S=(v_{1,j_1},v_{2,j_2},\dots,v_{i,j_i},\dots,v_{m,j_m})$，其中 $j_i\in \{1,\dots,n \}$。然后，就可以根据系统的主秘钥和公钥参数生成用户自己属性值集合上的秘钥。
+
+1. 首先，随机的选取 $m$ 个值 $t_i \in \mathbb{Z}_N$，并且取 $t=\sum _{i=1} ^ n t_i$；
+2. 然后，就可以计算 $D_0=g_p^{\omega - t}$ 和 $\{g_p^{t_i/a_{i,j_i}} \}_{1 \leq i \leq m}$；
+
+于是乎，我们就可以得到 $S$ 属性集合下的私钥：$SK_S=<D_0,\{D_i \}_{1\leq i \leq m}>$。
+
+$\bf Encrypt(PK,m,\mathbb{A})$
+
+确定访问策略 $\mathbb{A}=(W_1,\dots,W_m)$，其中，$W_i\subseteq V_i$。
+
+1. 首先，算法随机的选取 $s\in \mathbb{Z}_N$ 和 $R_0^\prime \in \mathbb{G}_r$；
+
+2. 接着，选取 $s_{i,j}\in \mathbb{Z}_N$ 和 $R_{i,j}^\prime \in \mathbb{G}_r$；其中，$1 \leq i \leq m, 1\leq j \leq n$；
+
+3. 然后，就可以计算密文与密文策略：$C=m\cdot Y^s$,$C_0=A_0^s \cdot R_0^\prime$；而对于密文策略而言，这篇文章中却是对系统中的所有属性进行了参与运算，只是分是否位于访问策略中：
+   $$
+   C_{i,j}=\left\{
+   \begin{aligned}
+   A_{i,j}^s\cdot R_{i,j}^\prime,\ \ if\ v_{i,j}\in W_i\\
+   A_{i,j}^{s_{i,j}}\cdot R_{i,j}^\prime, \ \ otherwise
+   \end{aligned}
+   \right.
+   $$
+
+因此，最终的密文及密文策略为：$c=<C,C_0,\{C_{i,j} \}_{1 \leq i \leq m, 1\leq j \leq n}>$。
+
+$\bf Decrypt(PK,SK_S,c)$
+
+在这里，就需要根据用户的属性集合 $S$ 来完成密文的解密，如果给定用户的属性集合 $S$ 满足访问策略 $\mathbb{A}$ 的话， 那么用户即可完成解密：
+$$
+\frac{C}{e(C_0,D_0)\cdot \prod_{i=1}^n e(C_{i,j_i},D_i)}
+$$
+通过，简单的运算就可以得出上面的式子的最后结果为 $m$，即可完成解密。安全性证明的话，可以参考论文中的附录部分。下面，我还是回到 2020 年哪一篇论文用区块链技术实现可信的访问控制方案。
 
 
 
@@ -441,3 +530,4 @@ This scheme's implementation is located in __inlude/Waters11Scheme.h__ and __sou
 ### 1. Setup Phase
 
 The ***setup*** algorithm is used to initialize the full parameters of ***CPABE*** scheme. Thanks to ***ABE*** scheme is based on ***bilinear pairing***, at first step, we need to initialize the parameters of ***bilinear pairing***. In order to fulfill this purpose, we need the [PBC library](https://crypto.stanford.edu/pbc/) implemented by *Ben Lynn* in Stanford University. 
+
