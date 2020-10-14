@@ -269,10 +269,10 @@ $$
 
 函数加密方案主要包括四个多项式算法，并且需要一个定义在 $(K,X)$ 这样一个空间的函数 $F$；具体的四个算法分别如下：
 
-1. ***Setup***. $(pp, mk) \leftarrow setup(1^{\lambda})$，主要用来生成公钥/主秘钥对；
-2. ***Keygen***. $sk \leftarrow keygen(mk,k)$，根据 $k\in K$ 和系统的主秘钥来生成 $k$ 对应的私钥；
-3. ***Encrypt***. $c\leftarrow enc(pp,x)$，加密消息 $x\in X$，获得密文；
-4. ***Decrypt***. $y \leftarrow dec(sk,c)$，使用 $sk$ 从密文 $c$ 中计算 $F(k,x)$。
+1. ***Setup***. $\bf (pp, mk) \leftarrow setup(1^{\lambda})$，主要用来生成公钥/主秘钥对；
+2. ***Keygen***. $\bf sk \leftarrow keygen(mk,k)$，根据 $k\in K$ 和系统的主秘钥来生成 $k$ 对应的私钥；
+3. ***Encrypt***. $\bf c\leftarrow enc(pp,x)$，加密消息 $x\in X$，获得密文；
+4. ***Decrypt***. $\bf y \leftarrow dec(sk,c)$，使用 $sk$ 从密文 $c$ 中计算 $F(k,x)$。
 
 在这里需要注意的是，这里的函数 $F$ 是定义在 $(K,X)$ 这两个空间上。其中，函数 $F : K \times X \rightarrow \{0,1\}^*$，而集合 $K$ 是密钥空间， $X$ 则是作为明文空间，同时，要求满足等式 $y = F(k,x)$。其实，说实话，通过看上面的定义，我根本不能理解函数加密的本质是什么。为了具体的描述一下函数加密的概念以及特点，我找到一篇介绍 ***Functional Encryption*** 的文章，名字就叫做 ***[Functional  Encrypiton: A New Vision for Public-Key Cryptography](https://dl.acm.org/doi/10.1145/2366316.2366333)***，下面我花些板块来介绍一下这里面关于函数加密的解释，内容主要摘抄自这篇论文。
 
@@ -348,14 +348,14 @@ $$
 
 在这篇文章中的实现方案上，主要包括了四个算法：
 
-***系统初始化 (System Setup)***: $Setup(1^\lambda)\rightarrow(PK, MSK)$
+***系统初始化 (System Setup)***: $\bf Setup(1^\lambda)\rightarrow(PK, MSK)$
 
 1. 属性授权方根据安全参数，生成整个系统需要使用各项参数，包括：系统所有的属性、双线性配对代数结构；因为使用到了布隆过滤器，系统参数里面还需要包含：表示属性所需要的最大位长 $L_{att}$ 和表示 *LSSS* 矩阵行数的最大位长 $L_{rownum}$ ，以及用 $k$ 来表示在属性布隆过滤器 (***ABF***)中使用的哈希函数的数量，$L_{ABF}$ 代表属性布隆过滤器需要位数组的长度；
 2. 属性授权方根据群 $\mathbb{G_1}$ 和阶 $p$ 生产一下参数。生成元 $g \in \mathbb{G_1}$；随机元素 $\alpha, a \in \mathbb{Z_p^*}$；和 $|\mathcal{U}|$ 个随机元素 $h_1,\dots, h_U \in \mathbb{G_1}$；同时，还需要选取 $k$ 个哈希函数 $H_1(), H_2(),\dots,H_k()$，把输入映射到 $[1,L_{ABF}]$ 这个空间上；
 
 因此，系统的公钥为 $PK=<g, e(g,g)^\alpha, g^a, L_{att}, L_{rownum}, L_{ABF}, h_1, h_2, \dots, h_U, H_1(), \dots, H_k()>$；系统主秘钥为 $MSK=g^\alpha$。
 
-***密钥生成阶段 (Key Generation)***: $KeyGen(PK,MSK,S) \rightarrow SK$
+***密钥生成阶段 (Key Generation)***: $\bf KeyGen(PK,MSK,S) \rightarrow SK$
 
 每个用户都需要在属性授权机构那里授权获得自己的属性结合 $S \sube \mathcal{U}$，同时生成对应于这个属性集合的秘钥。
 
@@ -364,11 +364,11 @@ $$
 
 因此，用户的私钥为 $SK=<K,L,\{K_x\}_{x \in S}>$。
 
-***数据加密阶段 (Data Encrypiton)***: $Encrypt(PK,m,(\mathbb{M},\rho))\rightarrow (CT,ABF)$
+***数据加密阶段 (Data Encrypiton)***: $\bf Encrypt(PK,m,(\mathbb{M},\rho))\rightarrow (CT,ABF)$
 
 在这篇文章中，作者使用的访问策略表达形式为 *LSSS* 矩阵，和 2011年 *Waters* 里面的方案是一模一样的。这里的 $\mathbb{M}$ 就是 *LSSS* 矩阵，我们依然假设为 $m \times n$ 的矩阵，而 $\rho$ 则是把矩阵的行与属性值进行映射的一个映射函数。因为，在这里需要对策略进行隐藏，作者使用布隆过滤器对映射函数进行替换，从而实现对策略的隐藏。在这个过程中，主要包含了两个不同的算法：
 
-$Enc(PK,m,(\mathbb{M},\rho))\rightarrow CT$
+$\bf Enc(PK,m,(\mathbb{M},\rho))\rightarrow CT$
 
 这个算法和前面介绍的 *Waters* 的那篇文章中加密过程一样，最终生成的密文信息为：
 
@@ -378,7 +378,7 @@ $CT=<C=me(g,g)^{\alpha s}, C^{\prime} = g^s,\{C_i=g^{a\lambda_i}h_{\rho(i)}^{-s}
 
 传统的布隆过滤器只能用来判断一个属性是否存在于集合当中，而这里需要准确的知道这个属性是位于那个行号；同时，传统的布隆过滤器存在假样例（属性实际不存在与集合，但是判断却显示存在）的情况，因此不能直接使用传统的布隆过滤器。因此，在这里，作者使用了一个叫做 "garbled 布隆过滤器"来对属性进行准确定位。传统的布隆过滤器使用的是多个位的数组来保存元素的映射，而 ”garbled BF” 使用的是长度为 $\lambda$ bit 长的数组来表示。因为，表达结构的不同，因此这个方案的假样例的概率十分的低，可以应用。$\lambda$ 位的前半部分为 $L_{rownum}$ 位的行下标，后半部分为 $L_{att}$ 位表示属性，因此有，$\lambda = L_{rownum}+L_{att}$。具体的过程通过以下这个算法完成：
 
-$ABFBuild(\mathbb{M},\rho) \rightarrow ABF$
+$\bf ABFBuild(\mathbb{M},\rho) \rightarrow ABF$
 
 首先，根据访问矩阵中的行号已经对应的属性，我们可一个获得一个元素集合 $S_e=\{i||att_e\}_{i\in [1,m]}$，其中，$att_e = \rho(i)$，同时，通过在最左边添加 0 来使行号和属性串表示成最大比特串；
 
@@ -398,13 +398,13 @@ $$
 
 最终，加密阶段过程形成的密文信息为 $(CT,\mathbb{M},ABF)$，就可以把其上传到云服务器上进行保存，等待被其他用户进行解密访问。
 
-***数据解密阶段 (Data Decryption)***：$(\mathbb{M},ABF,PK,SK,CT)\rightarrow m$
+***数据解密阶段 (Data Decryption)***：$\bf (\mathbb{M},ABF,PK,SK,CT)\rightarrow m$
 
 当用户接受到密文形式的数据以后，就可以根据自身所拥有的属性集合对密文进行解密，只有当用户的属性集合满足访问策略时，才能正确完成对密文的解密；相反，如果用户的属性集合不满足访问策略，则什么都获得不了。
 
 在本方案中，因为加入了属性布隆过滤器来实现对映射函数的隐藏。等加密数据到了用户端时，他/她不清楚自己的属性对应秘密矩阵的哪一行，进而就不能准确的完成解密过程。因为在加密阶段把属性以及其对应的行号通过属性布隆过滤器进行了保存，到了解密阶段就可以通过属性的查找来发现当前属性是否位于访问策略中，并且能准确的找到位于那行。具体的过程，通过一下两个算法来实现：
 
-$ABFQuery(S,ABF,PK) \rightarrow \rho^\prime$
+$\bf ABFQuery(S,ABF,PK) \rightarrow \rho^\prime$
 
 在这里的 $S$ 为用户的属性集合，对属性集合中的每个属性 $att\in S$，这个算法首先通过 $k$ 个哈希函数计算获得 $H_1(att),H_2(att),\dots,H_k(att)$；然后，把这 $k$ 个哈希值作为 ***ABF*** 中的索引，依次获得：
 $$
@@ -418,7 +418,7 @@ e=r_{1,e}\bigoplus r_{2,e}\bigoplus\dots\bigoplus r_{k,e}
 $$
 因为在 $e$ 中的前 $L_{rownum}$ 位为行号，后 $L_{att}$ 位代表的是属性；于是，通过这 $k$ 个二进制串的异或操作，便还原出当前属性对应的行号，可以用如下实行表达：$\rho^\prime = \{(rownum,att)\}_{att\in S}$。在获得访问策略 $(\mathbb{M},\rho^\prime)$ 后，就可以完成对密文的解析:
 
-$Dec(SK,CT,(\mathbb{M},\rho^\prime))\rightarrow m\ or\ \bot$
+$\bf Dec(SK,CT,(\mathbb{M},\rho^\prime))\rightarrow m\ or\ \bot$
 
 剩下的解密过程和前面 *Waters* 在 2011 年那篇一样，即可完成对密文的解析。通过上面的过程，我们可以发现，本文中的方案在 2011 年 *Waters* 的那篇文章中的方案很相似，不同的地方在于，本文使用一个被称为属性布隆过滤器的技术，实现对属性到对应行号映射函数的消除，以实现对访问策略的隐藏，保护用户的隐私。
 
@@ -511,11 +511,137 @@ $\bf Decrypt(PK,SK_S,c)$
 
 在这里，就需要根据用户的属性集合 $S$ 来完成密文的解密，如果给定用户的属性集合 $S$ 满足访问策略 $\mathbb{A}$ 的话， 那么用户即可完成解密：
 $$
-\frac{C}{e(C_0,D_0)\cdot \prod_{i=1}^n e(C_{i,j_i},D_i)}
+\frac{C}{e(C_0,D_0)\cdot \prod_{i=1}^m e(C_{i,j_i},D_i)}
 $$
-通过，简单的运算就可以得出上面的式子的最后结果为 $m$，即可完成解密。安全性证明的话，可以参考论文中的附录部分。下面，我还是回到 2020 年哪一篇论文用区块链技术实现可信的访问控制方案。
+通过，简单的运算就可以得出上面的式子的最后结果为 $m$，即可完成解密。安全性证明的话，可以参考论文中的附录部分。下面，我还是回到 2020 年哪一篇论文用区块链技术实现可信访问控制方案。
 
+### ***TrustAccess: A Trustworthy Secure Ciphertext-Policy and Attribute Hiding Access Control Scheme Based on Blockchain***
 
+在前面的内容，我也提到了本文中的 *CP-ABE* 方面内容和前面讲的 *Lai* 在 2011 年的那篇工作一样，唯一不同的地方在于系统初始化阶段，减少了系统主秘钥参数，用一个参数 $a\in \mathbb{Z}_N$ 去替换了 $a_{i,j} \in \mathbb{Z}_N $ 的作用，并且，用 $A_1$ 去替换了 $A_{i,j}$，但是后面的秘钥生成、加密和解密过程就只需要这一个主秘钥参数 $a$ 和公钥 $A_1$ 即可。
+
+在这里，我主要介绍这篇文章中如何把带有策略隐藏的 *CP-ABE* 方案与区块链技术进行结合。因为，涉及到了区块链的知识，这是一个我不熟悉的领域。不过这篇文章中，更多是使用区块链去中心化思想，加上区块链中最为重要*事务*和*智能合约*这两个工具，给出了实现可信访问的四个事务和智能合约算法，而没有在以太坊上实现事务与智能合约的算法，但这也可以作为后续工作的方向，大家有兴趣的话，可以沿着这个思路做一做。关于区块链的知识，大家可以去网上进行搜索了解，这里给出一个[*以太坊*](https://ethereum.org/zh/) 和智能合约编程语言 *[Solidity](https://solidity-cn.readthedocs.io/zh/develop/#)* 的链接。
+
+这篇文章除了使用区块链技术以实现可信的访问，为了保护用户属性的隐私，作者们还是用建立在 *ElGamal* 加密系统之上的乘法同态算法，而主要是在智能合约中实现用户属性向量与访问策略向量的同态乘，以保护用户侧的属性隐私。
+
+整个 ***TrustAccess*** 的系统架构如下图：
+
+![TrustAccess的系统架构](https://github.com/dwwcqu/CryptoABE/blob/master/images/trustaccess.png)
+
+在这个架构中步骤 1、步骤 7和步骤 8 和 *Lai* 的 *CP-ABE* 方案是一样的，在这里我们重点介绍步骤 2、步骤 3、步骤 4、步骤 5 和步骤 6，关于区块链事务与智能合约实现部分。现在，重点看一下本文中的四个过程：
+
+***Setup Phase***
+
+$\bf Setup(1^\lambda)$
+
+确定合数阶上配对运算的代数结构 $(p,q,r,\mathbb{G},\mathbb{G}_T,e)$；生成元 $g_p\in \mathbb{G}_p,g_r \in \mathbb{G}_r $和 $N=pqr$。
+
+随机选取 $a,\omega\in \mathbb{Z}_N$ 和 $R_0,R_1\in \mathbb{G}_r$;
+
+最终确定，公钥：$PK=<A_0 = g_p\cdot R_0,A_1=g_p^a\cdot R_1,g_r,Y=e(g,g)^\omega>$和主秘钥 $MSK=<g_p,a,\omega>$。
+
+根据这篇文章中构建的模型和内容介绍说，系统的初始化阶段是由数据拥有者 *DO* 来完成，意思就是说每个人要上传数据时，都要进行这个过程，而这些需要参与运算的参数也都由数据拥有者来保管，符合区块链去中心化特性，不需要一个中心化机构来集中式管理整个系统的参数。但是，从用户侧来看，只要自己生成了一次参数，可以用一段时间以后，更新自己的各项参数，以达到安全目的，消耗依旧是用户侧算力，也算是一种折中。
+
+***Encryption Phase***
+
+$\bf Enc(PK,m,\mathbb{A})$
+
+这里的访问策略 $\mathbb{A}=(W_1,\dots,W_m)$ 与 *Lai* 的策略一样；随机选择元素 $s,s_{i,j}\in \mathbb{Z}_N$ 和 $R_0^\prime,R_{i,j}^\prime \in \mathbb{G}_r$；然后，计算密文 $C=m\cdot Y^s,C_0=A_0^s\cdot R_0^\prime$；和密文策略：
+$$
+C_{i,j}=\left\{
+\begin{aligned}
+A_{1}^s\cdot R_{i,j}^\prime,\ \ if\ v_{i,j}\in W_i\\
+A_{1}^{s_{i,j}}\cdot R_{i,j}^\prime, \ \ otherwise
+\end{aligned}
+\right.
+$$
+其中，$1 \leq i \leq m, 1 \leq j \leq n$，再把访问策略 $\mathbb{A}$ 变成向量形式 $\vec{x}$。
+
+最终，可以获得加密阶段的密文和密文策略：$CT=<\vec{x},C,C_0,\{C_{i,j} \}_{1 \leq i \leq m, 1 \leq j \leq n}>$。
+
+***On-blockchain Phase***
+
+当数据拥有者 *DO* 完成对数据和策略的加密后，在本文中作者假设的场景是把数据保留在本地；然后，*DO* 根据算法 1，即生成密文和密文策略的存储事务：
+
+| 算法 1：生成区块链上的存储事务                               |
+| :----------------------------------------------------------- |
+| **Input**: $S$ 存储事务标识符；$storeAddress$ 密文存储地址；$CT$ 密文；$BSK_{DO}$ *DO*的私钥； |
+| **Output**：$Tx_{storage}$ 区块链中的存储事务                |
+| 1. $checkCode = H(CT)$ 生成密文的校验码                      |
+| 2. $MD=H(S,storeAddress,checkCode)$ 计算事务的数据摘要       |
+| 3. $sign = Sign_{BSK_{DO}}(MD)$ 使用 *DO* 的私钥对数据摘要进行签名 |
+| 4. $Tx_{storage}=<S,storeAddress,checkCode,sign>$ 生成存储事务 |
+| 5. $return\ \ Tx_{storage}$                                  |
+
+在数据拥有者 *DO* 完成存储事务生成算法以后，它就会被广播到区块链的其他节点上，以便用于认证，主要是通过里面的密文校验码认证密文的完整性；用签名认证密文的合法性。验证过程，主要通过算法 2来实现。主要是通过比较前后的数字摘要和密文校验码是否相同，来验证存储事务的合法性。
+
+| 算法 2：验证存储事务 $Tx_{storage}$                          |
+| ------------------------------------------------------------ |
+| **Input**: $Tx_{storage} = <S,storeAddress,checkCode,sign>$;$BPK_{DO}$ 数据拥有者的公钥； |
+| **Output**：$Tx$ 与 $CT$ 的合法/完整否                       |
+| 1. $MD^\prime = H(S,storeAddress,checkCode)$ 根据存储事务中的地址和校验码再次进行哈希运算 |
+| 2. $MD=Compute_{BPK_{DO}}(sign)$ 根据公钥和签名对签名进行认证 |
+| 3. 如果 $MD^\prime = MD$                                     |
+| 4.        $checkCode^\prime = H(CT)$ 根据密文地址获得密文后，对消息进行校验码计算 |
+| 5.        如果 $checkCode^\prime=checkCode$                  |
+| 6.                $return\ \ True$                           |
+| 7. $return \ \ False$                                        |
+
+一旦完成对存储事务的验证，这个事务经过[*拜占庭容错协议* ](https://dl.acm.org/doi/10.5555/296806.296824)就会被打包成块，保存到区块链中去。
+
+如果存在数据用户想要访问这个被加密的数据时，为了保护用户的属性隐私，只需要在用户侧判断用户的属性集合是否满足访问策略，即，用我前面讲的内积谓词加密技术。如果，用户的属性向量 $\vec{v}$ 满足 $\vec{x}\cdot \vec{v}=0$，那么就反应用户的属性集合满足访问策略，*DU* 于是产生一个证明：
+
+$\bf Proof = <BPK_{DU},storeAddress,E(\vec{v}),sign>$
+
+其中，$BPK_{DU}$ 为用户的公钥；$storeAddress$ 代表 *DU* 想要访问的密文地址；$E(\vec{v})$ 代表用户属性向量经过 *ElGamal* 加密系统产生的向量；$sign$ 代表 *DU* 对 **Proof** 的签名，
+
+一旦，*DU* 完成了 **Proof**，就要产生一个验证过程，以确定当前用户是满足访问需求的，主要通过算法 3来完成。其中，在这个过程中使用了 [*ElGamal*](https://link.springer.com/chapter/10.1007/3-540-39568-7_2) 加密方案的同态乘特性，以实现对用户属性的隐私保护。
+
+| 算法 3：验证 *DU* 是否具有访问权限                           |
+| ------------------------------------------------------------ |
+| **Input**：$E(\vec{v})=(E(v_1),E(v_2),\dots,E(v_n))$ 用户的属性经过ElGamal加密；$\vec{x}=(x_1,x_2,\dots,x_n)$ 密文中表示向量形式的访问测了；$(\mathbb{G}_1,q_1,g_1,h)$ ElGamal 加密系统的参数；$r \in \mathbb{G}_1$ 随机元素； |
+| **Output**：用户访问权限的验证结果                           |
+| 1. $\bf for \ \ 1 \leq j\leq n\ \ do$ 根据 ElGamal 加密系统完成对访问策略中每个属性的加密 |
+| 2.         $E(x_j)=(g_1^r\ mod\ q_1,x_jh^r\ mod\ q_1)$       |
+| 3. $E(\vec{x})=(E(x_1),E(x_2),\dots,E(x_n))$ 形成向量形式    |
+| 4. $result = E(v_1)\cdot E(x_1)+E(v_2)\cdot E(x_2)+\dots+E(v_n)\cdot E(x_n)$ 进行同态乘 |
+| 5. 如果 $result = E(0)$，则                                  |
+| 6.         $return \ \ True$                                 |
+| 7. $return \ \ False$                                        |
+
+一旦 *DU* 的 **Proof** 被验证为合法，那么就要产生一个访问事务，以记录 *DU* 的属性集合满足 *DO* 密文的访问策略，这个访问事务的创建过程用算法 4来完成。随后，就是把这个事务进行打包成块，并用一致性协议同步到其他区块链节点上。
+
+| 算法 4：生成一个 *DU* 的访问事务                             |
+| ------------------------------------------------------------ |
+| **Inpu**： $A$ 代表这是访问事务；${\bf Proof} = <BPK_{DU},storeAddress,E(\vec{v}),sign>$ *DU* 的 **Proof** |
+| **Output**：$Tx_{access}$ 访问事务                           |
+| 1. 如果 **Proof** 合法，则                                   |
+| 2.         $time$ 获取当前世界                               |
+| 3.         $MD=H(A,BPK_{DU},storeAddress,time)$ 计算这个事务的数据摘要 |
+| 4.         $sign= Sign_{BSK_{DU}}(MD)$ 用 *DU* 的私钥对事务进行签名 （原文中写的是 *DO* 的私钥，我觉得错了，在这里改成 *DU* 。） |
+| 5.         $Tx_{access}=<A,BPK_{DU},storeAddress,time,sign>$ 访问事务 |
+| 6.         $return \ \ Tx_{access}$                          |
+| 7. $return \ \ \bot$                                         |
+
+***Access Phase***
+
+这个访问阶段主要包括两个算法。因为，通过前面的认证过程，*DU* 已经被授权可以解密访问 *DO* 的密文，于是通过：
+
+$\bf KeyGen(PK,MSK)$ 
+
+1. 随机选取 $m$ 个元素 $t_i \in \mathbb{Z}_N$，并且，取 $t=\sum_{t=1}^mt_i$；
+2. 计算密钥：$D_0=g_p^{\omega-t},D_i=g_p^{t_i/a}$
+
+获取到用户 *DU* 的秘钥 $SK_{\vec{v}}=<D_0,\{D_i \}_{1\leq i \leq m}$，紧接着使用获得的秘钥完成解密。
+
+$\bf Dec(PK,CT,S,SK_{\vec{v}})$
+
+这里需要使用到用户 *DU* 的属性集合 $S=(v_{1,j_1},v_{2,j_2},\dots,v_{n,j_n})$ 来完成整个解密过程，其中，$j_i \in \{1,\dots,n\}$。当然，只有当 $v_{i,j_i}\in W_i$ 时，表明用户满足访问策略，进而可以完成解密操作：
+$$
+\frac{C}{e(C_0,D_0)\cdot \prod_{i=1}^me(C_{i,j_i},D_i)}=m
+$$
+以上，就是这篇用区块链实现可信访问，且支持密文策略隐藏和用户属性隐私保护方案的全部过程。原文的话，可以参考前面的链接，这里我重点介绍了这个方案的实现过程，而对于安全性证明过程，作者更多的还是参考了 *Lai* 等人在 2011 年那篇文章中的工作。
+
+在这里，对这篇文章做一个总结：
 
 
 ******
