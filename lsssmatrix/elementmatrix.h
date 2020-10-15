@@ -1,8 +1,9 @@
 #ifndef ELEMENTINZRMATRIX_H
 #define ELEMENTINZRMATRIX_H
 #include<vector>
-#include"ElementInZrVector.h"
-#include"ElementInMPQMatrix.h"
+#include"elementvector.h"
+#include"lsssmatrix.h"
+#include"curve_param.h"
 //在环Zr上的元素矩阵
 //元素矩阵
 class ElementMatrix
@@ -13,14 +14,13 @@ private:
         int rowNum{0};
         int colNum{0};
 public:
-        ElementMatrix(const std::vector<std::vector<int>>& lsssmatrix, pairing_t pairing);
-        ElementMatrix(MPQMatrix& empq,pairing_t pairing);
+        ElementMatrix(const std::string& accesspolicy, pairing_t pairing);
         ElementMatrix();
         ElementMatrix(const ElementMatrix& em);
         ElementMatrix trans();//对矩阵进行转置
         ElementMatrix addColumuAtLast(ElementVector& ev);//在矩阵的最后一列添加一列
         void rowSetpMatrixTrans();
-        void printElementMatrix();
+        void printElementMatrix()const;
         int findFirstNonZeroIndexAt(int index);//找到第index行的第一个非零元素的下标，如果都为零，返回-1
         void swapRR(int r1,int r2);
         ~ElementMatrix();

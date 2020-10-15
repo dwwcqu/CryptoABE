@@ -1,9 +1,11 @@
 #ifndef LSSSMATRIX_H
 #define LSSSMATRIX_H
 #include<string>
+#include<cassert>
 #include<iostream>
 #include<vector>
 #include<stack>
+#include"accesspolicy.h"
 class LSSSMatrix
 {
 private:
@@ -18,17 +20,18 @@ public:
     LSSSMatrix(int threshold,int childNum);
     LSSSMatrix();
     ~LSSSMatrix();
-    const int getRowNum();
-    const int getColumnNum();
+    const int getRowNum() const;
+    const int getColumnNum() const;
     std::vector<std::string>& getAttributesSet();
-    void printLsssMatrix();
-    std::vector<int> getRowAt(int index);
-    std::vector<int> getColumnAt(int index);
+    void printLsssMatrix() const;
+    std::vector<int> getRowAt(int index) const;
+    std::vector<int> getColumnAt(int index) const;
     void insertNodeMatrixAt(std::vector<std::vector<int>> nodematrix,int index);
-    void printAttributes();
+    void printAttributes() const;
     std::vector<std::vector<int>>& getLsssMatrix();
     //根据一个属性集合，获得其对应的LSSS子矩阵；
     std::vector<std::vector<int>> getSubMatrix(const std::vector<std::string>& attrs);
+    int& getAtIJ(int i1,int i2);
 };
 
 int pow(int base,int index);

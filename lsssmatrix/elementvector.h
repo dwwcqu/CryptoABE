@@ -1,10 +1,9 @@
 #ifndef ELEMENTINZRVECTOR_H
 #define ELEMENTINZRVECTOR_H
 
-
+#include<cassert>
 #include<iostream>
 #include"pbc/pbc.h"
-#include"ElementInMPQVector.h"
 
 //#include"ElementInZrMatrix.h"
 
@@ -25,12 +24,11 @@ private:
         friend class ElementMatrix;
 public:
         ElementVector(int len,pairing_t pairing,ElementVectorCate evc = Specify);
-        ElementVector(MPQVector& mpqv,pairing_t pairing);
         ElementVector();
         ElementVector(const ElementVector & ev);
         ~ElementVector();
-        int size();
-        void printElementVector();
+        int size() const;
+        void printElementVector()const;
         element_s& getElementAt(int index);
         void multiElementVector(ElementVector& ev,element_t& result);
 };
