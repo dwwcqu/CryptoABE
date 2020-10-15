@@ -2,11 +2,9 @@
 
 accesspolicy::accesspolicy()
 {
-
 }
 accesspolicy::accesspolicy(std::string policy):policy{policy}
 {
-    assert(isvalidpolicy() && "this string is not valid policy");
 }
 std::string accesspolicy::getpolicy() const
 {
@@ -65,7 +63,6 @@ bool accesspolicy::isvalidpolicy()
     }
     return true;
 }
-
 
 int getfirstcommaindex(std::string& policy)
 {
