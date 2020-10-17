@@ -44,5 +44,4 @@ class waterspublickey: publickey
                 }
             }
 };
-
 #endif
