@@ -14,7 +14,7 @@ private:
     int rowNum {1};
     int columnNum {1};
     int getAttIndex(std::string& att);
-
+    friend class ElementMatrix;
 public:
     LSSSMatrix(const std::string& accesspolicy);
     LSSSMatrix(int threshold,int childNum);

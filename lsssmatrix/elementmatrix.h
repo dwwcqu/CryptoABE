@@ -1,6 +1,7 @@
 #ifndef ELEMENTINZRMATRIX_H
 #define ELEMENTINZRMATRIX_H
 #include<vector>
+#include<map>
 #include"elementvector.h"
 #include"lsssmatrix.h"
 #include"curve_param.h"
@@ -11,6 +12,7 @@ class ElementMatrix
 
 private:
         element_s** elementMatrix;
+        std::map<int,std::string> rho;
         int rowNum{0};
         int colNum{0};
 public:
@@ -28,6 +30,7 @@ public:
         int getColNum();
         ElementVector multiVector(ElementVector& ev);
         ElementVector solve(ElementVector& b);//解一个线性方程组，返回一个特殊解
+        std::string& rowMapToAtts(int index);
 };
 
 

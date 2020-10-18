@@ -5,20 +5,19 @@
 
 class pairingparam
 {
-    protected:
-            pairing_s pairing;
     public:
-            pairingparam(const char *str)
-            {
-                pairing_init_set_str(&pairing,str);
-            }
-            pairingparam(const pairingparam& pg)
-            {
-
-            }
-            ~pairingparam()
-            {
-                pairing_clear(&pairing);
-            }
+            pairing_t p;
+            pairingparam(const char *str);
+            ~pairingparam();
 };
+
+pairingparam::pairingparam(const char *str)
+{
+    pairing_init_set_str(p,str);
+}
+
+pairingparam::~pairingparam()
+{
+    pairing_clear(p);
+}
 #endif

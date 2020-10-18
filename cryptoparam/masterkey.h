@@ -8,6 +8,7 @@ class masterkey
             masterkey(element_t a);
             ~masterkey();
             masterkey(masterkey& mk);
+            void printmasterkey();
 };
 
 masterkey::masterkey(element_t a)
@@ -25,5 +26,11 @@ masterkey::masterkey(masterkey& mk)
 {
     element_init_same_as(alpha,mk.alpha);
     element_set(alpha,mk.alpha);
+}
+
+void
+masterkey::printmasterkey()
+{
+    element_printf("alpha = %B\n",alpha);
 }
 #endif

@@ -1,7 +1,6 @@
 #include"abeparam.h"
 
-const std::vector<std::string> abeparam::universalAttributes_example_01 
-                                            {"A","B","C","D","E","F","G","H","M","N","P","Q"};
+const std::vector<std::string> abeparam::universalAttributes_example_01 {"A","B","C","D","E","F","G","H","M","N","P","Q"};
 
 
 const std::string abeparam::accessPolicy_example_01 {"((A,B,D,2),(F,H,1),2)"};

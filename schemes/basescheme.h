@@ -3,10 +3,10 @@
 
 class basescheme
 {
-
-    virtual void setup();
-    virtual void key();
-    virtual void enc();
-    virtual void dec();
+    public:
+        virtual void setup();
+        virtual void key();
+        virtual void enc();
+        virtual void dec();
 };
 #endif

@@ -13,6 +13,7 @@ class publickey
             ~publickey();
             void printpublickey() const;
 };
+
 publickey::publickey(element_t& g,element_t& o)
 {
     element_init_same_as(generator,g);
@@ -32,7 +33,7 @@ publickey::~publickey()
 {
     element_clear(generator);
     element_clear(omega);
-    std::cout<<"publickey deconstruction\n";
+    //std::cout<<"publickey deconstruction\n";
 }
 void publickey::printpublickey() const
 {

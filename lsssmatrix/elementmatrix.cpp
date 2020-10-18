@@ -13,6 +13,7 @@ ElementMatrix::
     elementMatrix = new element_s* [rowNum];
     for(int i = 0; i < rowNum; ++i)
     {
+        rho[i] = lsssmatrix.attributeSet[i];
         elementMatrix[i] = new element_s[colNum];
         for(int j = 0; j < colNum; ++j)
         {
@@ -103,6 +104,13 @@ ElementMatrix::solve(ElementVector& b)
             element_set(&(solution.elementVector[nonZeroIndex]),&(A_b.elementMatrix[i][A_b.colNum - 1]));
     }
     return solution;
+}
+
+std::string&
+ElementMatrix::rowMapToAtts(int index)
+{
+    assert(index >= 0 && index < rowNum && "ElementMatrix::rowMapToAtts(int index):index is out range of matrix's row");
+    return rho[index];
 }
 
 

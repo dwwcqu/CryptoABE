@@ -6,6 +6,7 @@
 
 class abeparam
 {
+public:
     static const std::vector<std::string> universalAttributes_example_01;
 
     static const std::string accessPolicy_example_01;
