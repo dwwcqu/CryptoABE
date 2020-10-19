@@ -4,7 +4,7 @@
 #include<iostream>
 #include<string>
 #include"pbc/pbc.h"
-#include"ElementInZrVector.h"
+#include"elementvector.h"
 //#include"pbc/pbc_test.h"
 enum AlgebraicS{
     Zr,G1,G2,GT

@@ -8,8 +8,10 @@ class publickey
     public:
             element_t generator;
             element_t omega;
+            publickey() = default;
             publickey(element_t& g,element_t& o);
             publickey(publickey& pk);
+            publickey& operator= (publickey& pk);
             ~publickey();
             void printpublickey() const;
 };
@@ -39,5 +41,17 @@ void publickey::printpublickey() const
 {
     element_printf("generator = %B\n",generator);
     element_printf("omega = %B\n",omega);
+}
+
+publickey&
+publickey::operator= (publickey& pk)
+{
+    if(this == &pk)
+        return *this;
+    element_init_same_as(generator,pk.generator);
+    element_init_same_as(omega,pk.omega);
+    element_set(generator,pk.generator);
+    element_set(omega,pk.omega);
+    return *this;
 }
 #endif

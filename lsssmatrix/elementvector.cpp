@@ -5,7 +5,7 @@
 #include"elementvector.h"
 
 ElementVector::
-        ElementVector(int len,pairing_t pairing,ElementVectorCate evc)
+        ElementVector(int len,pairing_t& pairing,ElementVectorCate evc)
 {
     length = len;
     elementVector = new element_s[len];

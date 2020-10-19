@@ -11,6 +11,7 @@ class usersecretkey
             atttokey Kx;
             usersecretkey(atttokey& kx);
             ~usersecretkey();
+            usersecretkey(usersecretkey& usk);
 };
 usersecretkey::usersecretkey(atttokey& kx)
 {
@@ -27,5 +28,12 @@ usersecretkey::~usersecretkey()
         element_clear(ite->second);
     }
 }
-
+usersecretkey::usersecretkey(usersecretkey& usk)
+{
+    for(atttokey::iterator ite = usk.Kx.begin(); ite != usk.Kx.end(); ++ite)
+    {
+        element_init_same_as(Kx[ite->first],ite->second);
+        element_set(Kx[ite->first],ite->second);
+    }
+}
 #endif

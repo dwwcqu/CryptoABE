@@ -1,40 +1,52 @@
-Include_Dir = /home/dww01/ABECrypto/include/
-Obj_Dir = /home/dww01/ABECrypto/obj/
-inc = include/
-par = param/
-Source_Dir = /home/dww01/ABECrypto/source/
-Param_Dir = /home/dww01/ABECrypto/param/
-Link = -L. -lgmp -lpbc
+#
+#		尚未完成
+#		Auther: Dengweiwei
+#		2020/10/19 21:22
+#
+root_dic = /home/dww01/ABECrypto
 
-All: Waters11Scheme
+inc_schemes = $(root_dic)/schemes
+inc_policy = $(root_dic)/accesspolicy/
+inc_cryptoparam = $(root_dic)/cryptoparam/
+inc_matrix = $(root_dic)/lsssmatrix/
+inc_param = $(root_dic)/param/
+inc_waters = $(inc_schemes)/waters11/
+
+obj = $(root_dic)/obj
+obj_schemes = $(obj)/schemes
+obj_policy = $(obj)/accesspolicy/
+obj_matrix = $(obj)/lsssmatrix/
+obj_param = $(obj)/param/
+obj_waters = $(obj_schemes)waters
+
+link = -L. -lgmp -lpbc
+
+waters11: waters11.o accesspolicy.o attsmaptoelement.o elementmatrix.o elementvector.o lsssmatrix.o abeparam.o curve_param.o
+	g++ $(obj_waters)waters11.o $(obj_policy)accesspolicy.o $(obj_matrix)attsmaptoelement.o \
+	$(obj_matrix)elementmatrix.o $(obj_matrix)elementvector.o $(obj_matrix)lsssmatrix.o     \
+	$(obj_param)abeparam.o $(obj_param)curve_param.o -o $(obj_schemes)/waters11 $(link)
+
+waters11.o:waters11.cpp
+	g++ $(inc_waters)waters11.cpp -c -o $(obj_waters)waters11.o -I$(inc_policy) -I$(inc_param) -I$(inc_cryptoparam) -I$(inc_matrix) -I$(inc_waters)
 
 
+accesspolicy.o:accesspolicy.cpp
+	g++ $(inc_policy)accesspolicy.cpp -c -o $(obj_policy)accesspolicy.o -I$(inc_policy)
 
-Waters11Scheme: Waters11Scheme.o LSSSMatrix.o ElementInMPQMatrix.o ElementInMPQVector.o ElementInZrMatrix.o ElementInZrVector.o AttsMapToElement.o
-	g++ $(Obj_Dir)Waters11Scheme.o $(Obj_Dir)LSSSMatrix.o $(Obj_Dir)ElementInMPQMatrix.o $(Obj_Dir)ElementInMPQVector.o $(Obj_Dir)ElementInZrMatrix.o $(Obj_Dir)ElementInZrVector.o $(Obj_Dir)AttsMapToElement.o  -o Waters11Scheme $(Link)
+attsmaptoelement.o:attsmaptoelement.cpp
+	g++ $(inc_matrix)attsmaptoelement.cpp -c -o $(obj_matrix)attsmaptoelement.o -I$(inc_matrix)
 
+elementmatrix.o:elementmatrix.cpp
+	g++ $(inc_matrix)elementmatrix.cpp -c -o $(obj_matrix)elementmatrix.o -I$(inc_policy) -I$(inc_matrix)
 
-Waters11Scheme.o: $(Source_Dir)Waters11Scheme.cpp 
-	g++ $(Source_Dir)Waters11Scheme.cpp -c -o $(Obj_Dir)Waters11Scheme.o -I$(Include_Dir)
+elementvector.o:elementvector.cpp
+	g++ $(inc_matrix)elementvector.cpp -c -o $(obj_matrix)elementvector.o -I$(inc_matrix)
 
-LSSSMatrix.o: $(Source_Dir)LSSSMatrix.cpp
-	g++ $(Source_Dir)LSSSMatrix.cpp -c -o $(Obj_Dir)LSSSMatrix.o -I$(Include_Dir)
+lsssmatrix.o:lsssmatrix.cpp
+	g++ $(inc_matrix)lsssmatrix -c -o $(obj_matrix)lsssmatrix.o -I$(inc_matrix)
 
+abeparam.o:abeparam.cpp
+	g++ $(inc_param)abeparam.cpp -c -o $(obj_param)abeparam.o -I$(inc_param)
 
-ElementInMPQMatrix.o:$(Source_Dir)ElementInMPQMatrix.cpp
-	g++ $(Source_Dir)ElementInMPQMatrix.cpp -c -o $(Obj_Dir)ElementInMPQMatrix.o -I$(Include_Dir) -L. -lgmp
-
-
-ElementInMPQVector.o:$(Source_Dir)ElementInMPQVector.cpp
-	g++ $(Source_Dir)ElementInMPQVector.cpp -c -o $(Obj_Dir)ElementInMPQVector.o -I$(Include_Dir) -L. -lgmp
-
-
-ElementInZrMatrix.o:$(Source_Dir)ElementInZrMatrix.cpp
-	g++ $(Source_Dir)ElementInZrMatrix.cpp -c -o $(Obj_Dir)ElementInZrMatrix.o -I$(Include_Dir) -L. -lgmp -lpbc
-
-ElementInZrVector.o:$(Source_Dir)ElementInZrVector.cpp
-	g++ $(Source_Dir)ElementInZrVector.cpp -c -o $(Obj_Dir)ElementInZrVector.o -I$(Include_Dir) -L. -lgmp -lpbc
-
-AttsMapToElement.o:$(Source_Dir)AttsMapToElement.cpp
-	g++ $(Source_Dir)AttsMapToElement.cpp -c -o $(Obj_Dir)AttsMapToElement.o -I$(Include_Dir) -L. -lgmp -lpbc
-
+curve_param.o:curve_param.cpp
+	g++ $(inc_param)curve_param -c -o $(obj_param)curve_param.o -I$(inc_param)

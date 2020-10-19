@@ -6,12 +6,12 @@ class cipher
     public:
             element_t C;
             element_t C_;
-            cipher(element_t& c,element_t c_);
+            cipher(element_t& c,element_t& c_);
             cipher(cipher& cp);
             ~cipher();
 };
 
-cipher::cipher(element_t& c,element_t c_)
+cipher::cipher(element_t& c,element_t& c_)
 {
     element_init_same_as(C,c);
     element_init_same_as(C_,c_);

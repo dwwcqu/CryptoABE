@@ -23,7 +23,7 @@ private:
         element_s* elementVector;
         friend class ElementMatrix;
 public:
-        ElementVector(int len,pairing_t pairing,ElementVectorCate evc = Specify);
+        ElementVector(int len,pairing_t& pairing,ElementVectorCate evc = Specify);
         ElementVector();
         ElementVector(const ElementVector & ev);
         ~ElementVector();

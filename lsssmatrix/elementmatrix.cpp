@@ -5,7 +5,7 @@
 #include"elementmatrix.h"
 
 ElementMatrix::
-        ElementMatrix(const std::string& accesspolicy,pairing_t pairing)
+        ElementMatrix(const std::string& accesspolicy,pairing_t& pairing)
 {
     LSSSMatrix lsssmatrix{accesspolicy};
     rowNum = lsssmatrix.getRowNum();
@@ -45,6 +45,7 @@ ElementMatrix(const ElementMatrix& em)
 {
     rowNum = em.rowNum;
     colNum = em.colNum;
+    rho = em.rho;
     elementMatrix = new element_s* [em.rowNum];
     for(int i = 0; i < em.rowNum; ++i)
     {
@@ -113,6 +114,41 @@ ElementMatrix::rowMapToAtts(int index)
     return rho[index];
 }
 
+ElementMatrix
+ElementMatrix::getSubMatrix(const std::vector<std::string>& useratts)
+{
+    std::vector<int> id;
+    //找到用户属性集合中对应矩阵的每一行的行下标
+    for(auto att:useratts)
+    {
+        int index{-1};
+        for(std::map<int,std::string>::iterator ite = rho.begin(); ite != rho.end(); ite++)
+        {
+            if(ite->second == att)
+                index = ite->first;
+        }
+        if(index == -1)
+            continue;
+        else
+            id.push_back(index);
+    }
+    ElementMatrix re;
+    int subRowNum = id.size();
+    re.rowNum = subRowNum;
+    re.colNum = colNum;
+    re.elementMatrix = new element_s*[subRowNum];
+    for(int i = 0; i < subRowNum; ++i)
+    {
+        re.rho[i] = useratts[i];
+        re.elementMatrix[i] = new element_s[colNum];
+        for(int j = 0; j < colNum; ++j)
+        {
+            element_init_same_as(&(re.elementMatrix[i][j]),&(elementMatrix[id[i]][j]));
+            element_set(&(re.elementMatrix[i][j]),&(elementMatrix[id[i]][j]));
+        }
+    }
+    return re;
+}
 
 void
 ElementMatrix::rowSetpMatrixTrans()
@@ -329,10 +365,11 @@ ElementMatrix::addColumuAtLast(ElementVector& ev)
 
 
 void ElementMatrix::
-        printElementMatrix() const
+        printElementMatrix()
 {
     for(int i = 0; i < rowNum; ++i)
     {
+        std::cout<<rho[i]<<" : ";
         for(int j = 0; j < colNum; ++j)
             element_printf("Element[%d][%d] = %B\t\t\t",i+1,j+1,&(elementMatrix[i][j]));
         std::cout<<'\n';
@@ -353,15 +390,3 @@ ElementMatrix::getColNum()
     return colNum;
 }
 
-
-int main(int argc,char* argv[])
-{
-    pairing_t pairing;
-    pairing_init_set_str(pairing,curve_param::a_param.c_str());
-    ElementMatrix em("((A,B,D,2),(F,H,2),2)",pairing);
-    ElementVector ev(em.getColNum(),pairing,Random);
-    ev.printElementVector();
-    em.multiVector(ev).printElementVector();
-    em.printElementMatrix();
-    return 0;
-}
