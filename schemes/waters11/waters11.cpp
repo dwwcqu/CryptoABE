@@ -56,7 +56,6 @@ waterscipher&
 waters11::enc(waterspublickey& pk,accesspolicy& policy,message& m,pairingparam& pairing)
 {
     ElementMatrix M(policy.getpolicy(),pairing.p);
-    M.printElementMatrix();
     ElementVector v(M.getColNum(),pairing.p,Random);
     ElementVector lambda{M.multiVector(v)};
 
@@ -146,14 +145,11 @@ waters11::dec(waterscipher& c,watersusersecretkey& userkey,pairingparam& pairing
         useratts.push_back(ite->first);
     
     ElementMatrix submatrix(c.M.getSubMatrix(useratts));
-    submatrix.printElementMatrix();
 
     ElementMatrix A(submatrix.trans());
     ElementVector b(A.getRowNum(),pairing.p,Specify);
-    b.printElementVector();
     ElementVector solution = A.solve(b);
     AttsMapToElement omega(useratts,solution);
-    omega.printAttsAndElement();
 
     element_t numerator;
     element_init_GT(numerator,pairing.p);
@@ -198,35 +194,56 @@ waters11::dec(waterscipher& c,watersusersecretkey& userkey,pairingparam& pairing
 
 
 int main(int argc,char* argv[])
-{
+{   
+    clock_t time;
+    double total_time{0};
     static pairingparam pairing(curve_param::a_param.c_str());
     pairing_init_set_str(pairing.p,curve_param::a_param.c_str());
+
+
     std::cout<<"########################################### Setup Begin ###########################################\n";
+    time = clock();
     waterskeypair &key(waters11::setup(abeparam::universalAttributes_example_01,pairing));
+    time = clock() - time;
     std::cout<<"########################################### Setup End ###########################################\n";
-    key.printkeypair();
+    std::cout<<"the time of Setup phase:\t" << static_cast<float>(time)/CLOCKS_PER_SEC << "s\n";
+    total_time += static_cast<float>(time)/CLOCKS_PER_SEC;
+    
     accesspolicy policy(abeparam::accessPolicy_example_02);
     element_t m;
     element_init_GT(m,pairing.p);
     element_random(m);
     message mes(m);//被加密的消息
-    mes.printmessage();
     std::cout<<"########################################### Enc Begin ###########################################\n";
+    time = clock();
     waterscipher& c(waters11::enc(key.pk,policy,mes,pairing));
+    time = clock() - time;
     std::cout<<"########################################### Enc End ###########################################\n";
-    c.printcipher();
+    std::cout<<"the time of Enc phase:\t" << static_cast<float>(time)/CLOCKS_PER_SEC << "s\n";
+    total_time += static_cast<float>(time)/CLOCKS_PER_SEC;
+
 
     std::cout<<"########################################### KeyGen Begin ###########################################\n";
+    time = clock();
     watersusersecretkey& userkey(waters11::keygen(abeparam::userAttributes_satisfied_example_02,key.pk,key.msk,pairing));
+    time = clock() - time;
     std::cout<<"########################################### KeyGen End ###########################################\n";
-    userkey.printSecretKey();
+    std::cout<<"the time of KeyGen phase:\t" << static_cast<float>(time)/CLOCKS_PER_SEC << "s\n";
+    total_time += static_cast<float>(time)/CLOCKS_PER_SEC;
 
     std::cout<<"########################################### Dec Begin ###########################################\n";
+    time = clock();
     message& mes_(waters11::dec(c,userkey,pairing));
+    time = clock() - time;
     std::cout<<"########################################### Dec End ###########################################\n";
-    mes_.printmessage();
+    std::cout<<"the time of Dec phase:\t" << static_cast<float>(time)/CLOCKS_PER_SEC << "s\n";
+    total_time += static_cast<float>(time)/CLOCKS_PER_SEC;
+
     if(mes == mes_)
+    {
         std::cout<<"decrypt is correct!\n";
+        std::cout<<"Water11Scheme total time:\t" << total_time << "s\n";
+    }
     else
         std::cout<<"decrypt is not correct!\n";
 
