@@ -19,7 +19,10 @@ abf::abf(const abf& a)
         atte[i] = a.atte[i];
     H = new hasher[lhash];
     for(int i = 0; i < lhash; ++i)
+    {
+        H[i].SEED = a.H[i].SEED;
         H[i].setSpace(labf);
+    }
 }
 abf::~abf()
 {
@@ -28,7 +31,7 @@ abf::~abf()
 }
 
 void
-abf::abfbulid(const std::string& att,const int rowid)
+abf::abfmap(const std::string& att,const int rowid)
 {
     uint8_t finalshare = static_cast<uint8_t>(rowid);
     int emptypos{-1};//找第一个下标映射为空的下标
@@ -56,6 +59,17 @@ abf::abfbulid(const std::string& att,const int rowid)
     atte[emptypos] = finalshare;
 
 }
+
+void
+abf::abfbuild(rho& attset)
+{
+    for(rho::iterator ite = attset.begin(); ite != attset.end(); ++ite)
+        abfmap(ite->first,ite->second);
+    for(int i = 0; i < labf; ++i)
+        if(atte[i] == 0x00)
+            atte[i] = rand() % (MAX_SEED - MIN_SEED) + MIN_SEED;
+}
+
 void
 abf::printABF()
 {
@@ -65,6 +79,8 @@ abf::printABF()
 int main(int argc,char* argv[])
 {
     abf a(5,3);
-    std::cout<< ((115 xor 81) xor 38) <<'\n';
+    rho m{{"Aa",1},{"Bb",2},{"Cc",3}};
+    a.abfbuild(m);
+    a.printABF();
     return 0;
 }
