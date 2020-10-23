@@ -1,11 +1,8 @@
 obj = /home/dww01/ABECrypto/obj/murmurhash/
 
 
-mmh: MurmurHash3.o hash.o
-	g++ $(obj)MurmurHash3.o $(obj)hash.o -o mmh
-
-MurmurHash3.o:MurmurHash3.cpp
+MurmurHash3.o:MurmurHash3.cpp hasher.o
 	g++ MurmurHash3.cpp -c -o $(obj)MurmurHash3.o
 
-hash.o:hash.cpp
-	g++ hash.cpp -c -o $(obj)hash.o
+hasher.o:hasher.cpp
+	g++ hasher.cpp -c -o $(obj)hasher.o
