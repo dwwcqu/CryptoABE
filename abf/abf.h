@@ -23,6 +23,7 @@ class abf
             abf(const abf& a);
             void abfbuild(rho& attset);
             void printABF();
+            int abfquery(const std::string& att);
 };
 
 #endif

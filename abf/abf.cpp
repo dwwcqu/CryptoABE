@@ -37,8 +37,8 @@ abf::abfmap(const std::string& att,const int rowid)
     int emptypos{-1};//找第一个下标映射为空的下标
     for(int i = 0; i < lhash; ++i)
     {
-        int location = H[i].hash(att);
-        //std::cout<< "H["<<i<<"] = "<<location<<'\n';
+        int location = H[i].hash(att.c_str());
+        std::cout<< "H["<<i<<"] = "<<location<<'\n';
         if(atte[location] == 0x00)//此处代表还未插入任何二进制串
         {
             if(emptypos == -1)
@@ -47,7 +47,7 @@ abf::abfmap(const std::string& att,const int rowid)
             {
                 //srandom((int)time(0));
                 uint8_t randid =  rand()%(MAX_SEED - MIN_SEED) + MIN_SEED;
-                //std::cout<<"rand["<<i<<"] = "<<static_cast<int>(randid)<<"\n";
+                std::cout<<"rand["<<i<<"] = "<<static_cast<int>(randid)<<"\n";
                 atte[location] = randid;
                 finalshare = (finalshare xor randid);
             }
@@ -55,9 +55,9 @@ abf::abfmap(const std::string& att,const int rowid)
         }
         else//如果以及存在非空二进制串,直接使用这个位置处的二进制串
             finalshare = (finalshare xor atte[location]);  
+         std::cout<<"round "<< i <<" emptypos = "<< emptypos <<'\n';
     }
     atte[emptypos] = finalshare;
-
 }
 
 void
@@ -70,17 +70,34 @@ abf::abfbuild(rho& attset)
             atte[i] = rand() % (MAX_SEED - MIN_SEED) + MIN_SEED;
 }
 
+int
+abf::abfquery(const std::string& att)
+{
+    uint8_t index = 0x00;
+    for(int i = 0; i < lhash; ++i)
+    {   
+        int h = H[i].hash(att.c_str());
+        index = (index xor atte[h]);
+    }
+    return static_cast<int>(index);
+}
+
 void
 abf::printABF()
 {
+    for(int i = 0; i < lhash; ++i)
+        std::cout<<"SEED " << i + 1 <<" = "<<H[i].SEED<<'\n';
     for(int i = 0; i < labf; ++i)
         std::cout<< "position "<< i+1 << "\t=\t"<< static_cast<int>(atte[i])<<'\n';
+    
 }
 int main(int argc,char* argv[])
 {
-    abf a(5,3);
+    abf a(60,3);
     rho m{{"Aa",1},{"Bb",2},{"Cc",3}};
     a.abfbuild(m);
     a.printABF();
+    std::string aa = "Bb";
+    std::cout<<"Aa's index is "<<a.abfquery(aa)<<'\n';
     return 0;
 }

@@ -3,13 +3,12 @@
 
 #define MIN_SEED 0x10000000//用于产生随机种子
 #define MAX_SEED 0xffffffff
-
+#include<string.h>
 #include <stdio.h>
 #include<cstdlib>
 #include<ctime>
 #include<iostream>
 #include<string>
-#include<string.h>
 #include"MurmurHash3.h"
 
 
@@ -23,7 +22,7 @@ class hasher
         hasher();
         hasher(int s);
         hasher(const hasher& h);
-        int hash(const std::string& message);
+        int hash(const char* message);
         void setSpace(int s);//设置映射空间大小
         void printSEED();
 };

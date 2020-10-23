@@ -8,7 +8,7 @@ hasher::hasher()
 
 hasher::hasher(int s):space(s)
 {
-    srandom((int)time(0));
+    //srandom((int)time(0));
     SEED = rand()%(MAX_SEED - MIN_SEED) + MIN_SEED;
 }
 
@@ -20,10 +20,10 @@ hasher::hasher(const hasher& h)
 }
 
 int
-hasher::hash(const std::string& message)
+hasher::hash(const char* message)
 {
     uint32_t h;
-    MurmurHash3_x86_32(&message,message.length(),SEED,&h);
+    MurmurHash3_x86_32(message,strlen(message),SEED,&h);
     return h % space;
 }
 
@@ -33,7 +33,7 @@ hasher::setSpace(int s)
     space = s;
 }
 
-void 
+void
 hasher::printSEED()
 {
     std::cout<<std::hex<<SEED<<'\n';
