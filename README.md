@@ -647,7 +647,58 @@ $$
 >
 > 按照这篇文章的逻辑，被访问内容由其拥有者自己来管理，区块链只是对访问过程进行记录，作为后续的认证和追溯；同时，数据拥有者需要为访问自己数据的用户生成对应的秘钥（因为没有一个中心化的机构来管理嘛，就让他/她来做了），而当用户进行访问时，都已经产生经过认证的 **Proof** ，即已经确定当前用户已经具备访问的权利，这两个过程是否可以进行简化；另外，当访问的用户数量很大时，对数据拥有者来讲，计算开销以及通信代价很大，是否可以将加密后的数据保存至云服务中心，利用云的算力和通信带宽，可以提升整体效率；这篇文章中的细粒度访问策略只支持 **AND** 和 **OR** 这两种逻辑运算，是否可以提出支持 $(t,n)$ 阈值形式；关于区块链上的事务以及智能合约，是否可以用代码进行实现，也是一个值得研究的方向。
 
-下面，将要介绍什么呢？
+# ***idea***
+
+## ***garbled Bloom Filter***
+
+经过一段时间，在代码关于属性布隆过滤器的算法过程中，因为各种 bug 出现的原因，我发现出现的原因在于，选取的哈希函数个数和 *Garbled BF* 可以保存的二进制串个数会影响哈希函数映射位置的冲突率。为减少同一个哈希函数对映射空间 *[1,n]* 的冲突率，需要一定的理论证明来确定这两者之间的限制关系，以确定实际应用的选取范围。为了有一个理论上的支撑，我学习了 [*When private set intersection meets big data: An efficient and scalable protocol*](https://dl.acm.org/doi/10.1145/2508859.2516701) 这篇文章中关于 *garbled Bloom Filter* 的详细介绍。
+
+### ***Preliminaries***
+
+#### 	***符号***
+
+对于一个正多项式 $p(\cdot)$ 和一个足够大的数 $n$ 而言，如果有 $\mu(n) \leq 1/p(n)$ 成立的话，我们就可以认为 $\mu(\cdot)$ 是可以忽略的。
+
+|              $m$              |                 **布隆过滤器的比特位数**                  |
+| :---------------------------: | :-------------------------------------------------------: |
+|              $n$              |                  **集合 $S$ 的元素个数**                  |
+|              $S$              |           **布隆过滤器需要进行哈希的元素集合**            |
+| $H=\{h_0,h_1,\dots,h_{k-1}\}$ | **$k$ 个哈希函数，且对每个哈希函数 $h_i(x) \in [0,m-1]$** |
+|            $BF_S$             |           **使用布隆过滤器对集合 $S$ 进行哈希**           |
+|           $BF_S[i]$           |            **布隆过滤器第 $i$ 位置处的比特值**            |
+|              $y$              |                 **集合 $S$ 中的一个元素**                 |
+
+#### ***Bloom Filter***
+
+详细关于布隆过滤器的介绍可以参考前面的链接。
+
+因为元素 $y$ 进过哈希函数 $h_i(y)$ 映射以后，$BF_S(h_i(y))$ 一定为1；反过来的话，如果 $BF_S(h_i(y)) = 0$ 则一定能说明元素 $y$ 不存在与集合 $S$ 中。因此，布隆过滤器不存在假阴例的情况，但是可以以一定的概率存在假阳例，即元素本身不在集合中，但是所有的哈希下标处的比特都为 1，故而布隆过滤器被称为概率数据结构。
+
+对于给定布隆过滤器，其对应下标处设置为 1 的概率为 $p = 1-(1-1/m)^{kn}$ ，于是根据论文 [*On the false-positive rate of Bloom filters*](https://doi.org/10.1016/j.ipl.2008.05.018) 的结论，如果给定输入$k$， 我们可以得到出现假阳例的概率：
+$$
+\epsilon=p^k\times(1+O(\frac{k}{p}\sqrt{\frac{\ln m-k\ln p}{m}}))
+$$
+是可以忽略不计的。
+
+因为，出现假阳例的概率和 $m$ 、$k$ 的选择有关系，同样根据前面的工作，可以确定比特数字大小的下界为 $m\geq n\log_2 e \cdot \log_2 {1/\varepsilon}$ ，其中，$\varepsilon$ 为元素个数为 $n$ 的集合允许出现最大假阳例的概率，$e$ 为自然对数；而最优的哈希函数的数量选择为 $k=(m/n)\cdot \ln 2$，如果 $m$ 取最优的话，$k$ 也可以取到最优 $\log_2 1/\varepsilon$。
+
+# ***参考文献***
+
+1. Waters B. (2011) Ciphertext-Policy Attribute-Based Encryption: *An Expressive, Efficient, and Provably Secure Realization*. In: Catalano D., Fazio N., Gennaro R., Nicolosi A. (eds) Public Key Cryptography – PKC 2011. PKC 2011. Lecture Notes in Computer Science, vol 6571. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-19379-8_4
+2. Amos Beimel. *Secure Schemes for Secret Sharing and Key Distribution*. PhD thesis, Israel Institute of Technology, Technion, Haifa, Israel, 1996.
+3. Dan Boneh and Matthew K. Franklin. 2001. *Identity-Based Encryption from the Weil Pairing*. In <i>Proceedings of the 21st Annual International Cryptology Conference on Advances in Cryptology</i> (<i>CRYPTO '01</i>). Springer-Verlag, Berlin, Heidelberg, 213–229.
+4. Dan Boneh, Ben Lynn, and Hovav Shacham. 2001. *Short Signatures from the Weil Pairing*. In <i>Proceedings of the 7th International Conference on the Theory and Application of Cryptology and Information Security: Advances in Cryptology</i> (<i>ASIACRYPT '01</i>). Springer-Verlag, Berlin, Heidelberg, 514–532.
+5. Sahai A., Waters B. (2005) *Fuzzy Identity-Based Encryption*. In: Cramer R. (eds) Advances in Cryptology – EUROCRYPT 2005. EUROCRYPT 2005. Lecture Notes in Computer Science, vol 3494. Springer, Berlin, Heidelberg. https://doi.org/10.1007/11426639_27
+6. Boneh D., Sahai A., Waters B. (2011) *Functional Encryption: Definitions and Challenges*. In: Ishai Y. (eds) Theory of Cryptography. TCC 2011. Lecture Notes in Computer Science, vol 6597. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-19571-6_16
+7. Dan Boneh, Amit Sahai, and Brent Waters. 2012. *Functional encryption: a new vision for public-key cryptography*. <i>Commun. ACM</i> 55, 11 (November 2012), 56–64. DOI:https://doi.org/10.1145/2366316.2366333
+8. K. Yang, Q. Han, H. Li, K. Zheng, Z. Su and X. Shen, "*An Efficient and Fine-Grained Big Data Access Control Scheme With Privacy-Preserving Policy*," in IEEE Internet of Things Journal, vol. 4, no. 2, pp. 563-571, April 2017, doi: 10.1109/JIOT.2016.2571718.
+9. Junzuo Lai, Robert H. Deng, and Yingjiu Li. 2011. *Fully secure cipertext-policy hiding CP-ABE*. In <i>Proceedings of the 7th international conference on Information security practice and experience</i> (<i>ISPEC'11</i>). Springer-Verlag, Berlin, Heidelberg, 24–39.
+10. S. Gao, G. Piao, J. Zhu, X. Ma and J. Ma, "*TrustAccess: A Trustworthy Secure Ciphertext-Policy and Attribute Hiding Access Control Scheme Based on Blockchain*," in IEEE Transactions on Vehicular Technology, vol. 69, no. 6, pp. 5784-5798, June 2020, doi: 10.1109/TVT.2020.2967099.
+11. Dan Boneh, Eu-Jin Goh, and Kobbi Nissim. 2005. *Evaluating 2-DNF formulas on ciphertexts*. In <i>Proceedings of the Second international conference on Theory of Cryptography</i> (<i>TCC'05</i>). Springer-Verlag, Berlin, Heidelberg, 325–341. DOI:https://doi.org/10.1007/978-3-540-30576-7_18
+12. Changyu Dong, Liqun Chen, and Zikai Wen. 2013. *When private set intersection meets big data: an efficient and scalable protocol*. In <i>Proceedings of the 2013 ACM SIGSAC conference on Computer &amp; communications security</i> (<i>CCS '13</i>). Association for Computing Machinery, New York, NY, USA, 789–800. DOI:https://doi.org/10.1145/2508859.2516701
+13. Prosenjit Bose, Hua Guo, Evangelos Kranakis, Anil Maheshwari, Pat Morin, Jason Morrison, Michiel Smid, Yihui Tang, *On the false-positive rate of Bloom filters*, Information Processing Letters, Volume 108, Issue 4, 2008, Pages 210-213, ISSN 0020-0190.
+
+
 
 
 ******
