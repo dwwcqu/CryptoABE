@@ -647,7 +647,7 @@ $$
 >
 > 按照这篇文章的逻辑，被访问内容由其拥有者自己来管理，区块链只是对访问过程进行记录，作为后续的认证和追溯；同时，数据拥有者需要为访问自己数据的用户生成对应的秘钥（因为没有一个中心化的机构来管理嘛，就让他/她来做了），而当用户进行访问时，都已经产生经过认证的 **Proof** ，即已经确定当前用户已经具备访问的权利，这两个过程是否可以进行简化；另外，当访问的用户数量很大时，对数据拥有者来讲，计算开销以及通信代价很大，是否可以将加密后的数据保存至云服务中心，利用云的算力和通信带宽，可以提升整体效率；这篇文章中的细粒度访问策略只支持 **AND** 和 **OR** 这两种逻辑运算，是否可以提出支持 $(t,n)$ 阈值形式；关于区块链上的事务以及智能合约，是否可以用代码进行实现，也是一个值得研究的方向。
 
-# ***idea***
+# ***Ideas***
 
 ## ***garbled Bloom Filter***
 
@@ -748,6 +748,76 @@ $$
 
 总之就是，在合适的参数条件下，$GBF_S$ 不会出现假阴例和可以忽略不计的假阳例。
 
+## ***Access Poliyc Hiding Using GBF(Garbled Bloom Filter)***
+
+使用 *Garbled Bloom Filter* 实现对访问策略中属性与行号映射函数 $\rho(\cdot)$ 的消除，在参考文献[8]中虽然也是用 *GBF* 来实现对访问策略的隐藏，但其把行号和对应的属性值的二进制串形式进行 $(k,k)$ 阈值的秘密分享，增加了二进制串的长度的同时，还带来了网络时延。因此，我对[8]中的算法进行了改进，只需要对行号的二进制串进行 $(k,k)$ 秘密分享，并保存到 *GBF* 中，在保证相同安全强度的同时，减少网络带宽。
+
+## ***秘密还原算法 (Secret Reconstruction Algorithm)***
+
+在 ***CP-ABE*** 加密阶段，通过秘密分享的方法，用户把自己设定的访问策略（访问策略建立在一个属性集合上）保存在密文中，只有满足访问策略属性集合用户才能还原出分享的秘密值，进而完成对密文解密。而针对 *LSSS* 秘密分享方案的秘密值还原，目前还没论文计算秘密还原算法，在这里我主要设计了两个算法：一个是 *LSSS* 矩阵行列变换和通过线性方程组完成给定属性集合上秘密值的还原，如果给定属性集合满足访问策略，则返回正确的秘密值；否则要么线性方程无解，要么返回一个错误的秘密值。
+
+| 算法1：非齐次线性方程求特解                                  |
+| :----------------------------------------------------------- |
+| **Input：** $A$：$m\times n$ 矩阵；$b=(1,0,...,0)^T$：$m$ 个元素的向量 |
+| **Output：** 有特解解则返回特解向量 $\vec x$；否则，返回表示无解的符号 $\bot$ |
+| 1. $M=(A,b)$                                                 |
+| 2. $minRC = min(m,n+1)$ ：取两个数的最小值                   |
+| 3. **for $i=0$ to $minRC$ **                                 |
+| 4.         **if $M[i][i]==0$**                               |
+| 5.                **if succeefully find row $j$  whose first non-zero element's index is $i$** |
+| 6.                     $M_i\leftrightarrow M_j$ 两行交换位置 |
+| 7.                **else**                                   |
+| 8.                      $continue$                           |
+| 9.          **else if $M[i][i]\not= 1$**                     |
+| 10.                  **making the first element of row $i$ 1** |
+| 11.         **making the element below $M[i][i]$ 0**         |
+| 12. **end**                                                  |
+| 13. **for $i=0$ to $minRC$ **                                |
+| 14.         $nonzeroIndex[i]=findfirstnonzeroIndex(i)$ 找到计第 $i$ 行的非零首元素的列号 |
+| 15.         **making $M[i][nonzeroIndex[i]]=1$ **            |
+| 16.         **making element below $M[i][nonzeroIndex[i]]$ 0** |
+| 17. **end**                                                  |
+| 18. **for $i=0$ to $minRC$ **                                |
+| 19.         **for $j=i$ to $minRC$ **                        |
+| 20.                 **find index $j$ of minimun $nonzeroIndex$ ** |
+| 21.         $nonzeroIndex[i]\leftrightarrow nonzeroIndex[j]$ |
+| 22.         $M_i\leftrightarrow M_j$                         |
+| 23. **end**                                                  |
+| 24. **for $i=minRC-1$ to $0$ **                              |
+| 25.         **making element above $M[i][nonzeroIndex[i]]$ 0** |
+| 26. **end**                                                  |
+| 27. **for $i=0$ to $n-1 $ **                                 |
+| 28.         $\vec x[i]=0$                                    |
+| 29. **end**                                                  |
+| 30. **for $i=minRC-1 $ to $0$ **                             |
+| 31.         **if $nonzeroIndex[i]==n$ **                     |
+| 32.                  **return $ \bot$ **                     |
+| 33.         **else**                                         |
+| 34.                 $\vec x[nonzeroIndex[i]]=M[i][n]$        |
+| 35. **end**                                                  |
+| 36. **return $ \vec x$ **                                    |
+
+根据给定 *LSSS* 矩阵 $A$ 和一个特殊向量 $\vec b=(1,0,...,0)^T$，计算线性方程组 $(A\vec x \equiv \vec b)\ \ mod\ \ p$ ；如果线性方程有解，则返回特解向量 $\vec x$，无解则返回表示无解的符号 $\bot$。在这里，需要注意的是，这个线性方程组是建立在环 $\mathbb{Z_p}$ 上的方程组，其中，$p$ 为群上的阶。
+
+| 算法2：秘密值还原算法                                        |
+| ------------------------------------------------------------ |
+| **Input：** $M$: *LSSS* 矩阵；$U$: 用户的属性集合；$GBF_S$: ***Garbled Bloom Filter***；$\vec\lambda_U$:用户秘密值向量 |
+| **Output：**如果集合 $S$ 满足访问策略，则输出秘密值 $s$，否则返回 $\bot$ |
+| 1. $\forall e\in U,rowLen=0$ **do**                          |
+| 2.         **if $GBFQuery(e)\geq 0$ and $GBFQuery(e)\leq m-1$ ** |
+| 3.                 $index[rowLen]=GBFQuery(e)$               |
+| 4.                 $++rowLen$                                |
+| 5. **end**                                                   |
+| 6. **for $i=0$ to $rowLen$ **                                |
+| 7.          $M^\prime_i=M_{index[i]}$ 把矩阵 $M$ 的第 $index[i]$ 行赋值给 $M^\prime$ 的第 $i$ 行 |
+| 8. **end**                                                   |
+| 9. $A=(M^\prime)^T$ **and** $b=(1,0,..,0)^T$ **where $b$'s length is the number of $A$'s row ** |
+| 10. 根据算法一计算 $A\vec x=\vec b$                          |
+| 11. **if $\vec x$ 有解 **                                    |
+| 12.         **return $(\vec x, \vec \lambda_U)$**            |
+| 13. **else**                                                 |
+| 14.         **return $\bot$ **                               |
+
 
 
 # ***参考文献***
@@ -765,6 +835,8 @@ $$
 11. Dan Boneh, Eu-Jin Goh, and Kobbi Nissim. 2005. *Evaluating 2-DNF formulas on ciphertexts*. In <i>Proceedings of the Second international conference on Theory of Cryptography</i> (<i>TCC'05</i>). Springer-Verlag, Berlin, Heidelberg, 325–341. DOI:https://doi.org/10.1007/978-3-540-30576-7_18
 12. Changyu Dong, Liqun Chen, and Zikai Wen. 2013. *When private set intersection meets big data: an efficient and scalable protocol*. In <i>Proceedings of the 2013 ACM SIGSAC conference on Computer &amp; communications security</i> (<i>CCS '13</i>). Association for Computing Machinery, New York, NY, USA, 789–800. DOI:https://doi.org/10.1145/2508859.2516701
 13. Prosenjit Bose, Hua Guo, Evangelos Kranakis, Anil Maheshwari, Pat Morin, Jason Morrison, Michiel Smid, Yihui Tang, *On the false-positive rate of Bloom filters*, Information Processing Letters, Volume 108, Issue 4, 2008, Pages 210-213, ISSN 0020-0190.
+14. Zhen Liu, Zhenfu Cao and Duncan S. Wong, "*Efficient Generation of Linear Secret Sharing Scheme Matrices from Threshold Access Trees*", *Cryptology ePrint Archive*, Report 2010/374, https://eprint.iacr.org/2010/374.
+15. 
 
 
 
