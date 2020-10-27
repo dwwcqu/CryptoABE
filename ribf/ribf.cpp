@@ -1,6 +1,6 @@
-#include"abf.h"
+#include"ribf.h"
 
-abf::abf(int lf,int lh):labf(lf),lhash(lh)
+ribf::ribf(int lf,int lh):labf(lf),lhash(lh)
 {
     atte = new uint8_t[lf];
     for(int i = 0; i < lf; ++i)
@@ -10,7 +10,7 @@ abf::abf(int lf,int lh):labf(lf),lhash(lh)
         H[i].setSpace(labf);
 }
 
-abf::abf(const abf& a)
+ribf::ribf(const ribf& a)
 {
     labf = a.labf;
     lhash = a.lhash;
@@ -24,14 +24,14 @@ abf::abf(const abf& a)
         H[i].setSpace(labf);
     }
 }
-abf::~abf()
+ribf::~ribf()
 {
     delete[] atte;
     delete[] H;
 }
 
 void
-abf::abfmap(const std::string& att,const int rowid)
+ribf::ribfmap(const std::string& att,const int rowid)
 {
     uint8_t finalshare = static_cast<uint8_t>(rowid);
     int emptypos{-1};//找第一个下标映射为空的下标
@@ -61,17 +61,17 @@ abf::abfmap(const std::string& att,const int rowid)
 }
 
 void
-abf::abfbuild(rho& attset)
+ribf::ribfbuild(rho& attset)
 {
     for(rho::iterator ite = attset.begin(); ite != attset.end(); ++ite)
-        abfmap(ite->first,ite->second);
+        ribfmap(ite->first,ite->second);
     for(int i = 0; i < labf; ++i)
         if(atte[i] == 0x00)
             atte[i] = rand() % (MAX_SEED - MIN_SEED) + MIN_SEED;
 }
 
 int
-abf::abfquery(const std::string& att)
+ribf::ribfquery(const std::string& att)
 {
     uint8_t index = 0x00;
     for(int i = 0; i < lhash; ++i)
@@ -83,7 +83,7 @@ abf::abfquery(const std::string& att)
 }
 
 void
-abf::printABF()
+ribf::printRIBF()
 {
     for(int i = 0; i < lhash; ++i)
         std::cout<<"SEED " << i + 1 <<" = "<<H[i].SEED<<'\n';
@@ -93,11 +93,11 @@ abf::printABF()
 }
 int main(int argc,char* argv[])
 {
-    abf a(60,3);
+    ribf a(60,3);
     rho m{{"Aa",1},{"Bb",2},{"Cc",3}};
-    a.abfbuild(m);
-    a.printABF();
-    std::string aa = "Bb";
-    std::cout<<"Aa's index is "<<a.abfquery(aa)<<'\n';
+    a.ribfbuild(m);
+    a.printRIBF();
+    std::string aa = "Cc";
+    std::cout<<"Bb's index is "<<a.ribfquery(aa)<<'\n';
     return 0;
 }
