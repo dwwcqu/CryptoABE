@@ -695,7 +695,7 @@ $$
 | **Input：** 集合 $S$ , $n$ :集合元素个数；$m$ : 比特串的个数；$k$：哈希函数的个数；$\lambda$: 每个比特串的长度; $H = \{h_1,h_2,\dots,h_k\}$ |
 | **Outp：** $GBF_S$                                           |
 | 1. $GBF_S$ 初始化为一个为 $m$ 个元素的比特串数组             |
-| 2. $\bf for\ i = 1\ to\ m-1\ do$                             |
+| 2. $\bf for\ i = 0\ to\ m-1\ do$                             |
 | 3.        $GBF_S[i] =NULL$                                   |
 | 4. **end**                                                   |
 | 5. **for each $x\in S$ do**                                  |
@@ -752,11 +752,56 @@ $$
 
 使用 *Garbled Bloom Filter* 实现对访问策略中属性与行号映射函数 $\rho(\cdot)$ 的消除，在参考文献[8]中虽然也是用 *GBF* 来实现对访问策略的隐藏，但其把行号和对应的属性值的二进制串形式进行 $(k,k)$ 阈值的秘密分享，增加了二进制串的长度的同时，还带来了网络时延。因此，我对[8]中的算法进行了改进，只需要对行号的二进制串进行 $(k,k)$ 秘密分享，并保存到 *GBF* 中，在保证相同安全强度的同时，减少网络带宽。
 
+| 算法一：*Row Index Garbled Bloom Filter* 行索引乱码布隆过滤器构建 |
+| ------------------------------------------------------------ |
+| **Input：**$\rho(\cdot)$ : 行索引与属性的映射函数；$S$：访问策略上的属性集合；$\lambda$：安全参数，也即表示行索引的二进制串的位数；$H=\{h_1,...,h_k\}$：$k$ 个哈希函数；$m$：过滤器中 $\lambda$ 串个数；$n$：集合 $S$ 中属性的个数； |
+| **Output：** $RIGBF(m,\lambda,H)$：建立在访问策略属性集合 $S$ 上的行索引乱码布隆过滤器； |
+| 1. 初始化 $RIGBF$ 为一个长度为 $m$ 长，且每个元素为 $\lambda$ 长的二进制串的数组； |
+| 2. $\bf for\ i = 0\ to\ m-1\ do$                             |
+| 3.        $RIGBF[i] =NULL$                                   |
+| 4. **end**                                                   |
+| 5. **$\forall att\in S$ do**                                 |
+| 6.         $emptyPos=-1,finalShare=\rho(att)$                |
+| 7.         **for $i=0$ to $k-1$ do **                        |
+| 8.                 $j=h_i(att)$                              |
+| 9.                 **if $RIGBF[j]==NULL$ then**              |
+| 10.                       **if $empltyPos=-1$ then **        |
+| 11.                               $empytPos=j$               |
+| 12.                       **else**                           |
+| 13.                                $r\leftarrow \{0,1\}^{\lambda}$ 随机产生一个 $ \lambda$ 长的字符串 |
+| 14.                                $RIGBF[j]=r$              |
+| 15.                                $finalShare=finalShare\bigoplus r$ |
+| 16.              **else**                                    |
+| 17.                       $finalShare=finalShare\bigoplus RIGBF[j]$ |
+| 18.        $RIGBF[emptyPos]=finalShare$                      |
+| 19.        **end**                                           |
+| 20. **end**                                                  |
+| 21. **for $i=0$ to $m-1$ do**                                |
+| 22.        **if $RIGBF[i]==NULL$ then**                      |
+| 23.                $r\leftarrow \{0,1\}^{\lambda}$ 随机产生一个 $ \lambda$ 长的字符串 |
+| 24.                $RIGBF[i]=r$                              |
+| 25. **end**                                                  |
+| 26. **return  $RIGBF(m,\lambda,H)$  **                       |
+
+通过上述算法一，可以构建一个 *LSSS* 矩阵行索引的乱码布隆过滤器，其行索引由映射函数 $\rho(\cdot)$ 把访问策略上的属性与行号进行关联。于是，为了确定给定属性对应的行索引，需要算法二关于行索引的查找。在给定属性值输入的情况下，返回其保存在 $RIGBF$ 中的行索引。
+
+| 算法二：*Row Index Query* 行索引查找 $RIGBFQuery(att)$       |
+| ------------------------------------------------------------ |
+| **Input：** $att$ ：属性值；$RIGBF(m,\lambda,H)$：行索引乱码布隆过滤器 |
+| **Output：** $index$：属性对应的行号                         |
+| 1. $index=\{0\}^\lambda$ 初始化 $index$ 为全零的二进制串     |
+| 2. **for $i=0$ to $k-1$ do**                                 |
+| 3.         $index=index\bigoplus h_i(att)$                   |
+| 4. **end**                                                   |
+| 5. **return $index$**                                        |
+
+
+
 ## ***秘密还原算法 (Secret Reconstruction Algorithm)***
 
 在 ***CP-ABE*** 加密阶段，通过秘密分享的方法，用户把自己设定的访问策略（访问策略建立在一个属性集合上）保存在密文中，只有满足访问策略属性集合用户才能还原出分享的秘密值，进而完成对密文解密。而针对 *LSSS* 秘密分享方案的秘密值还原，目前还没论文计算秘密还原算法，在这里我主要设计了两个算法：一个是 *LSSS* 矩阵行列变换和通过线性方程组完成给定属性集合上秘密值的还原，如果给定属性集合满足访问策略，则返回正确的秘密值；否则要么线性方程无解，要么返回一个错误的秘密值。
 
-| 算法1：非齐次线性方程求特解                                  |
+| 算法1：模 $\bf p$ 非齐次线性方程求特解                       |
 | :----------------------------------------------------------- |
 | **Input：** $A$：$m\times n$ 矩阵；$b=(1,0,...,0)^T$：$m$ 个元素的向量 |
 | **Output：** 有特解解则返回特解向量 $\vec x$；否则，返回表示无解的符号 $\bot$ |
@@ -801,18 +846,18 @@ $$
 
 | 算法2：秘密值还原算法                                        |
 | ------------------------------------------------------------ |
-| **Input：** $M$: *LSSS* 矩阵；$U$: 用户的属性集合；$GBF_S$: ***Garbled Bloom Filter***；$\vec\lambda_U$:用户秘密值向量 |
+| **Input：** $M$: *LSSS* 矩阵；$U$: 用户的属性集合；$RIGBF$: ***Row Index Garbled Bloom Filter***；$\vec\lambda_U$:用户秘密值向量；$p$ ：群 $\mathbb{G_1}$ 的阶 |
 | **Output：**如果集合 $S$ 满足访问策略，则输出秘密值 $s$，否则返回 $\bot$ |
 | 1. $\forall e\in U,rowLen=0$ **do**                          |
-| 2.         **if $GBFQuery(e)\geq 0$ and $GBFQuery(e)\leq m-1$ ** |
-| 3.                 $index[rowLen]=GBFQuery(e)$               |
+| 2.         **if $RIGBFQuery(e)\geq 0$ and $RIGBFQuery(e)\leq m-1$ ** |
+| 3.                 $index[rowLen]=RIGBFQuery(e)$             |
 | 4.                 $++rowLen$                                |
 | 5. **end**                                                   |
 | 6. **for $i=0$ to $rowLen$ **                                |
 | 7.          $M^\prime_i=M_{index[i]}$ 把矩阵 $M$ 的第 $index[i]$ 行赋值给 $M^\prime$ 的第 $i$ 行 |
 | 8. **end**                                                   |
 | 9. $A=(M^\prime)^T$ **and** $b=(1,0,..,0)^T$ **where $b$'s length is the number of $A$'s row ** |
-| 10. 根据算法一计算 $A\vec x=\vec b$                          |
+| 10. 根据算法一计算 $(A\vec x=\vec b)\ \ mod\ \ p$            |
 | 11. **if $\vec x$ 有解 **                                    |
 | 12.         **return $(\vec x, \vec \lambda_U)$**            |
 | 13. **else**                                                 |
