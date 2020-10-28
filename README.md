@@ -795,7 +795,62 @@ $$
 | 4. **end**                                                   |
 | 5. **return $index$**                                        |
 
+## ***联盟链上的存储与访问事务 (Storage and Access Transactions in Consortium Blockchain)***
 
+具有分布式账本特性的区块链技术，可以用来记录访问过程的记录账本，以实现对访问过程的可追溯性。因此，分别设计了密文数据的存储事务和访问事务算法，以及对应事务的验证算法。
+
+| 算法一：生成一个存储事务；$Tx_{storage}$                     |
+| ------------------------------------------------------------ |
+| **Input：**$S$：the identifier of storage transaction；$storageAddress$: the storage address of the ciphertext; $CT$: the ciphertext; $IDSK_{DO}$: the identity based secret key of data owners; $storageTime$: the time of storage |
+| **Output：**$Tx_{storage}=\{S,storeAddress,checkCode,sign,storageTime\}$ |
+| 1. $checkCode=Hash(CT)$: compute the message digest of $CT$  |
+| 2. $TD=Hash(S,storeAddress,checkCode,storageTime)$: compute the digest of transaction |
+| 3. $sign=Sign_{IDSK_{DO}}(TD)$: using the secret key of encryptor to compute the signature of $TD$ |
+| 4. $Tx_{storage}=\{S,storeAddress,checkCode,sign,storageTime\}$ |
+| 5. **return $Tx_{storage}$ **                                |
+
+算法一的过程，主要是通过加密方的私钥对密文数据的摘要进行签名，进而生成一个存储事务，以便于存储在区块中。为了使整个链上块中的事务唯一，每个节点都需要对存储事务进行验证，以确定此地址存储的密文是该用户的。因此，给出了算法二，存储事务的验证算法。
+
+| 算法二：验证存储事务 $Tx_{storage}$                          |
+| ------------------------------------------------------------ |
+| **Input：**$Tx_{storage}$: storage transaction; $IDPK_{DO}$: data owner's public key |
+| **Output：**The validation of $Tx$ and $CT$                  |
+| 1. $TD^\prime=Hash(S,storeAddress,checkCode,storageTime,)$: compute the digest of transaction according to the records saved in $Tx_{storage}$ |
+| 2. $TD=Verify_{IDPK_{DO}}(sign)$: using encryptor's public key to verify the $sign$ |
+| 3. **if $TD^\prime==TD$**                                    |
+| 4.         **return $true$**                                 |
+| 5. **else**                                                  |
+| 6.         **return $false$**                                |
+
+算法二作为算法一的验证过程，主要用于事务广播到链上其他节点时，去验证广播过来的事务是否合法。只有当前节点的所有事务都是合法以后，才能通过一致性协议把事务打包成块，存入链上。待有用户需要对加密数据进行访问时，需要通过算法三的访问事务，来记录其访问过程。
+
+| 算法三：generate access transaction 生成访问事务             |
+| ------------------------------------------------------------ |
+| **Input：**$A$: the identifier of the access transaction; $IDSK_{DU}$: the secret key of date user; $storeAddress$: the address of ciphertext user want to access; $CT^\prime$: the ciphertext that user downloaded; $accessTime$: access time; $checkCode$: ciphertext's check code |
+| **Output：** $Tx_{access}=\{A,storeAddress,sign,accessTime\}$ |
+| 1. $checkCode^\prime=Hash(CT^\prime)$: compute the digest of data that user downloaded |
+| 2. **if $checkCode^\prime==checkCode$**                      |
+| 3.         $TD=Hash(A,storeAddress,accessTime)$: compute the digest of access transaction |
+| 4.         $sign=Sign_{IDSK_{DU}}(TD)$: compute the signature of transaction |
+| 5.         $Tx_{access}=\{A,storeAddress,sign,accessTime\}$  |
+| 6.         **return $Tx_{access}$**                          |
+| 7. **else**                                                  |
+| 8.         **return $\bot$ **                                |
+
+算法三，首先对解密方下载的数据进行合法性验证，主要通过密文的数字摘要与下载数据计算后的摘要进行对比。只要密文数据的合法性得到验证以后，才能生成访问事务，并返回。为了使存储事务保存到区块中，需要对生成的访问事务进行合法性认证，认证过程通过算法四。
+
+| 算法四：verify access transaction  验证存储事务              |
+| ------------------------------------------------------------ |
+| **Input: **$Tx_{access}=\{A,storeAddress,sign,accessTime\}$: access transaction; $IDPK_{DU}$: data user's public key |
+| **Output:** the validation of transaction                    |
+| 1. $TD^\prime=Hash(A,storeAddress,accessTime)$               |
+| 2. $TD=Verify_{IDPK_{DU}}(sign)$: compute the validation of signature by user's public key |
+| 3. **if $TD^\prime==TD$ then**                               |
+| 4.         **return $true$ **                                |
+| 5. **else**                                                  |
+| 6.         **return $false$ **                               |
+
+经过算法四便可以确定当前的访问事务是否合法，在验证合法后，各个节点经过一致性协议便可以打包成块，加入到链上。
 
 ## ***秘密还原算法 (Secret Reconstruction Algorithm)***
 
