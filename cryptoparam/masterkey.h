@@ -1,5 +1,6 @@
 #ifndef MASTERKEY_H
 #define MASTERKEY_H
+#include<iostream>
 #include"pbc/pbc.h"
 class masterkey
 {     

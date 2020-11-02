@@ -4,6 +4,7 @@
 
 class myschemepublickey: public publickey
 {
-    
+    public:
+            
 };
 #endif

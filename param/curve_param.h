@@ -7,6 +7,7 @@ class curve_param {
 public:
     static const std::string a_param;
     static const std::string a1_param;
+    static const std::string a1_4_128;
     static const std::string d159_param;
     static const std::string d201_param;
     static const std::string d224_param;

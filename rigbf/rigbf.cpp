@@ -91,13 +91,3 @@ rigbf::printRIGBF()
         std::cout<< "position "<< i+1 << "\t=\t"<< static_cast<int>(atte[i])<<'\n';
     
 }
-int main(int argc,char* argv[])
-{
-    rigbf a(60,3);
-    rho m{{"Aa",1},{"Bb",2},{"Cc",3}};
-    a.rigbfbuild(m);
-    a.printRIGBF();
-    std::string aa = "Cc";
-    std::cout<<"Bb's index is "<<a.rigbfquery(aa)<<'\n';
-    return 0;
-}
