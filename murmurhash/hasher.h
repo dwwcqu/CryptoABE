@@ -17,7 +17,7 @@ class hasher
     private:
         uint32_t SEED;//哈希种子
         int space;//映射空间长度
-        friend class ribf;
+        friend class rigbf;
     public:
         hasher();
         hasher(int s);
